@@ -1,0 +1,49 @@
+### **.gitignore**
+This file ensures unnecessary files do not clutter the repository.
+
+```plaintext
+# Byte-compiled / cached files
+__pycache__/
+*.py[cod]
+*.swp
+*.swo
+
+# Virtual environment
+venv/
+env/
+*.venv
+
+# IDE/editor files
+.vscode/
+.idea/
+*.iml
+
+# Logs and databases
+*.log
+*.sqlite3
+
+# Docker
+*.dockerignore
+docker-compose.override.yml
+
+# GitLab CI/CD artifacts
+.gitlab-ci.yml.swp
+coverage/
+*.cover
+
+# Environment variables and credentials
+.env
+.env.*
+secrets/
+config.json
+
+# Python dependencies
+*.egg-info/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Build artifacts
+dist/
+build/
+*.egg
+*.whl
