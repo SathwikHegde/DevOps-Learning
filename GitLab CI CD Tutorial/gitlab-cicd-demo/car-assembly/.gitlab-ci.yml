@@ -1,0 +1,28 @@
+stages:
+  - build
+  - test
+
+build_car:
+  image: alpine
+  stage: build
+  script:
+    - echo "Building the car"
+    - mkdir build  # Create a new folder build
+    - cd build     # go to directory
+    #- touch car.txt # Create a new file
+    - echo "chassis" >> car.txt # write in the text file
+    - echo "engine" >> car.txt
+    - echo "wheels" >> car.txt
+    - cat car.txt #read file
+  artifacts:
+    paths:
+      - build/
+
+test_car:
+  image: alpine
+  stage: test
+  script:
+    - test -f build/car.txt #test if the file exists
+    - grep "chassis" build/car.txt #test if the text exists
+    - grep "engine" build/car.txt
+    - grep "wheels" build/car.txt

@@ -1,0 +1,12 @@
+person:
+  first_name: Sathwik
+  age: 25
+  is_married: false
+  hobbies: 
+    - Soccer
+    - Gaming
+  friends: 
+    - first_name: John
+    - age: 26
+    - first_name: Frank
+    - age: 27
