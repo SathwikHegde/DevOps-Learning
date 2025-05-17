@@ -1,4 +1,4 @@
-Okay, I can definitely help you make this README section more polished\! Here's a revised version, focusing on clarity, conciseness, and a more engaging tone:
+## Section 1: Continuous Integration (CI) with GitLab
 
 ## Section 2: Continuous Integration (CI) with GitLab
 
@@ -29,6 +29,3 @@ This allowed us to serve the application locally and confirm its basic functiona
 ### Leveling Up: Utilizing Docker for a Consistent Build Environment
 
 Next, we'll delve into how Docker can be leveraged to create a reliable and reproducible build environment for our CI pipelines. This ensures that our builds are consistent, regardless of the underlying infrastructure.
-
-
-
