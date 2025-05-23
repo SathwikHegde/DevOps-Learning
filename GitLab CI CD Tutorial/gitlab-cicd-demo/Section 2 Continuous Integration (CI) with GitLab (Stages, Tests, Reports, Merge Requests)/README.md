@@ -12,10 +12,10 @@ To get started, we forked the `learn-gitlab-app` repository: [https://gitlab.com
 
 During this step, we also gained familiarity with:
 
-  * **Dependencies:** Understanding how our application relies on external libraries.
-  * **npm (Node Package Manager):** A powerful tool for managing JavaScript project dependencies.
-  * `package.json`: The blueprint of our project, outlining its dependencies and scripts.
-  * `package-lock.json`: Ensuring consistent dependency versions across different environments.
+* **Dependencies:** Understanding how our application relies on external libraries.
+* **npm (Node Package Manager):** A powerful tool for managing JavaScript project dependencies.
+* `package.json`: The blueprint of our project, outlining its dependencies and scripts.
+* `package-lock.json`: Ensuring consistent dependency versions across different environments.
 
 We then took the application for a spin using the following commands:
 
@@ -46,13 +46,14 @@ For our learn-gitlab-app, a good starting point might be one of the official Nod
 
 By starting with a well-chosen Docker image, we lay a solid foundation for a consistent and efficient CI process.
 
-###  Choosing an appropriate Docker image
+### Choosing an appropriate Docker image
 
 #### Choosing the Right Foundation: Exploring Lightweight Docker Images
 
 As we discussed, selecting the initial Docker image is a critical step. For optimizing our build process, particularly in terms of speed and size, lightweight Docker images like those based on Alpine Linux or the "slim" variants of other distributions are often excellent choices.
 
-####  Lightweight Docker images (alpine, slim)
+#### Lightweight Docker images (alpine, slim)
+
 #### The Benefits of Lightweight Images
 
 * **Smaller Size:** Lightweight images inherently have a smaller footprint. This translates to faster download and upload times during CI pipeline execution, as well as reduced storage requirements for your Docker registry.
@@ -115,24 +116,24 @@ build_job:
 
 **Let's break down this configuration:**
 
-  * **`image: node:lts-alpine`**: This line specifies the Docker image that will be used as the execution environment for this job. We're using the lightweight Alpine-based Node.js image we discussed earlier.
-  * **`stages:`**: This section defines the different stages in our pipeline. Here, we only have a `build` stage. You can have multiple stages like `test`, `deploy`, etc., executed sequentially.
-  * **`build_job:`**: This defines a specific job named `build_job`. You can have multiple jobs within a stage.
-      * **`stage: build`**: This assigns the `build_job` to the `build` stage.
-      * **`script:`**: This section contains the commands to be executed within the Docker container.
-          * **`- npm install`**: This command installs the dependencies listed in our `package.json` file.
-          * **`- npm run build`**: This command executes the build script defined in our `package.json` (e.g., creating an optimized production build of our frontend).
-      * **`artifacts:`**: This section defines files or directories that should be saved after the job completes. These artifacts can be downloaded or used by subsequent jobs in the pipeline.
-          * **`paths:`**: This specifies the paths to the artifacts we want to save. Here, we're saving the `build/` directory, which typically contains the built version of our application.
+* **`image: node:lts-alpine`**: This line specifies the Docker image that will be used as the execution environment for this job. We're using the lightweight Alpine-based Node.js image we discussed earlier.
+* **`stages:`**: This section defines the different stages in our pipeline. Here, we only have a `build` stage. You can have multiple stages like `test`, `deploy`, etc., executed sequentially.
+* **`build_job:`**: This defines a specific job named `build_job`. You can have multiple jobs within a stage.
+  * **`stage: build`**: This assigns the `build_job` to the `build` stage.
+  * **`script:`**: This section contains the commands to be executed within the Docker container.
+    * **`- npm install`**: This command installs the dependencies listed in our `package.json` file.
+    * **`- npm run build`**: This command executes the build script defined in our `package.json` (e.g., creating an optimized production build of our frontend).
+  * **`artifacts:`**: This section defines files or directories that should be saved after the job completes. These artifacts can be downloaded or used by subsequent jobs in the pipeline.
+    * **`paths:`**: This specifies the paths to the artifacts we want to save. Here, we're saving the `build/` directory, which typically contains the built version of our application.
 
 #### How it Works in GitLab
 
 When you push code changes to your GitLab repository, GitLab CI/CD will automatically:
 
-1.  Pick up the `.gitlab-ci.yml` file.
-2.  Spin up a Docker container using the `node:lts-alpine` image.
-3.  Execute the commands defined in the `script` section of the `build_job` within that container.
-4.  If the job succeeds, it will save the contents of the `build/` directory as an artifact.
+1. Pick up the `.gitlab-ci.yml` file.
+2. Spin up a Docker container using the `node:lts-alpine` image.
+3. Execute the commands defined in the `script` section of the `build_job` within that container.
+4. If the job succeeds, it will save the contents of the `build/` directory as an artifact.
 
 This automated build process ensures that every code change is built in a consistent environment, catching potential issues early in the development lifecycle.
 
@@ -150,10 +151,10 @@ Build artifacts are the files and directories generated by a CI job that you wan
 
 In the previous section, we briefly introduced the `artifacts` keyword. Let's revisit and expand on its role. By defining `artifacts` within a job, you instruct GitLab to:
 
-1.  **Collect Specified Paths:** After the job completes successfully, GitLab will collect all files and directories listed under `paths`.
-2.  **Archive Them:** These collected files are then compressed into a `.zip` archive.
-3.  **Upload to GitLab:** The archive is uploaded to GitLab's server, making it accessible via the job's page in the GitLab UI or programmatically through the GitLab API.
-4.  **Expire (Optional):** You can also define an `expire_in` policy to automatically delete artifacts after a certain period, helping manage storage.
+1. **Collect Specified Paths:** After the job completes successfully, GitLab will collect all files and directories listed under `paths`.
+2. **Archive Them:** These collected files are then compressed into a `.zip` archive.
+3. **Upload to GitLab:** The archive is uploaded to GitLab's server, making it accessible via the job's page in the GitLab UI or programmatically through the GitLab API.
+4. **Expire (Optional):** You can also define an `expire_in` policy to automatically delete artifacts after a certain period, helping manage storage.
 
 #### Your Task: Implement Artifact Publishing
 
@@ -161,7 +162,7 @@ For this assignment, your goal is to ensure that the built `learn-gitlab-app` is
 
 **Steps to Complete:**
 
-1.  **Review Your `.gitlab-ci.yml`:** Confirm that your `build_job` correctly includes the `artifacts` section.
+1. **Review Your `.gitlab-ci.yml`:** Confirm that your `build_job` correctly includes the `artifacts` section.
       * It should look something like this:
 
         ```yaml
@@ -176,9 +177,10 @@ For this assignment, your goal is to ensure that the built `learn-gitlab-app` is
             # You might optionally add:
             # expire_in: 1 week # Example: artifacts expire after one week
         ```
-2.  **Commit and Push:** Commit your `.gitlab-ci.yml` file to your forked `learn-gitlab-app` repository and push the changes to GitLab.
-3.  **Observe the Pipeline:** Go to your project's "CI/CD \> Pipelines" section in GitLab. You should see a new pipeline triggered by your push.
-4.  **Verify Artifacts:** Once the `build_job` completes successfully (indicated by a green checkmark):
+
+2. **Commit and Push:** Commit your `.gitlab-ci.yml` file to your forked `learn-gitlab-app` repository and push the changes to GitLab.
+3. **Observe the Pipeline:** Go to your project's "CI/CD \> Pipelines" section in GitLab. You should see a new pipeline triggered by your push.
+4. **Verify Artifacts:** Once the `build_job` completes successfully (indicated by a green checkmark):
       * Click on the `build_job` to view its details.
       * On the job's page, look for the "Job artifacts" section. You should see a "Download artifacts" button.
       * Clicking this button should download a `.zip` file containing your `build/` directory with the compiled application.
@@ -206,26 +208,24 @@ Here's a breakdown of the key components and how they interact:
 
 * **GitLab Runners:**
     These are the agents that actually execute the jobs defined in your `.gitlab-ci.yml`. A Runner can be a virtual machine, a physical server, or even a Docker container itself. They poll the GitLab instance for available jobs. When a job is assigned, the Runner:
-    * **Fetches the code:** Clones your repository.
-    * **Pulls the Docker image:** Downloads the specified Docker image (e.g., `node:lts-alpine`).
-    * **Spins up a container:** Starts a new container based on that image.
-    * **Executes the scripts:** Runs the commands defined in the `script` section of your job (e.g., `npm install`, `npm run build`).
-    * **Uploads artifacts:** If defined, it collects and uploads any specified artifacts back to the GitLab instance.
-    * **Reports status:** Sends the job's success or failure status back to GitLab.
+  * **Fetches the code:** Clones your repository.
+  * **Pulls the Docker image:** Downloads the specified Docker image (e.g., `node:lts-alpine`).
+  * **Spins up a container:** Starts a new container based on that image.
+  * **Executes the scripts:** Runs the commands defined in the `script` section of your job (e.g., `npm install`, `npm run build`).
+  * **Uploads artifacts:** If defined, it collects and uploads any specified artifacts back to the GitLab instance.
+  * **Reports status:** Sends the job's success or failure status back to GitLab.
 
 * **Docker (as a build environment):**
     As we've seen, Docker plays a crucial role by providing isolated, consistent, and reproducible environments for each job. The Runner uses Docker to create a fresh container for every job execution, ensuring that dependencies and system configurations don't interfere between different jobs or runs.
 
 **In essence, the flow looks like this:**
 
-1.  **Developer pushes code** to GitLab.
-2.  **GitLab reads `.gitlab-ci.yml`** and creates a pipeline with stages and jobs.
-3.  **GitLab dispatches a job** to an available **GitLab Runner**.
-4.  **The Runner pulls the specified Docker image**, runs the job's scripts inside a new container, and sends the results (status, logs, artifacts) back to GitLab.
-5.  **GitLab updates the pipeline status** and makes artifacts available.
+1. **Developer pushes code** to GitLab.
+2. **GitLab reads `.gitlab-ci.yml`** and creates a pipeline with stages and jobs.
+3. **GitLab dispatches a job** to an available **GitLab Runner**.
+4. **The Runner pulls the specified Docker image**, runs the job's scripts inside a new container, and sends the results (status, logs, artifacts) back to GitLab.
+5. **GitLab updates the pipeline status** and makes artifacts available.
 
 Understanding this architecture helps troubleshoot pipeline failures and design more robust and efficient CI/CD workflows.
 
 ---
-
-How does this more detailed explanation of the GitLab CI/CD architecture resonate with you? Do you have any specific questions about how these components interact?
