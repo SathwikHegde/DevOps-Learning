@@ -229,3 +229,126 @@ Here's a breakdown of the key components and how they interact:
 Understanding this architecture helps troubleshoot pipeline failures and design more robust and efficient CI/CD workflows.
 
 ---
+
+Let's get this assignment section polished and clear!
+
+---
+
+### Assignment: Adding a Test Stage
+
+Our journey through Continuous Integration so far has focused on building our application. However, a core tenet of CI is to **continuously verify** that our application still works as expected after every change. This is where the **testing stage** becomes indispensable.
+
+#### The Importance of Automated Testing in CI
+
+Automated tests are crucial because they:
+
+* **Catch regressions early:** Quickly identify if a new change breaks existing functionality.
+* **Provide rapid feedback:** Developers get immediate feedback on the health of their code.
+* **Improve confidence:** Knowing that tests pass gives confidence in deploying changes.
+* **Enable faster iterations:** Reduces the fear of introducing bugs, allowing for quicker development cycles.
+
+For our `learn-gitlab-app`, which is a JavaScript application, we'll typically rely on JavaScript testing frameworks like Jest, Mocha, or others that are integrated into the project. The `package.json` often defines a `test` script that executes these tests.
+
+#### Your Task: Implement a `test` Stage
+
+Your goal for this assignment is to extend our `.gitlab-ci.yml` file to include a dedicated `test` stage that runs the application's automated tests.
+
+**Here's how to approach it:**
+
+1.  **Introduce a new `test` stage:**
+    * Modify the `stages` section in your `.gitlab-ci.yml` to include a `test` stage *after* the `build` stage. This ensures that tests only run if the build is successful.
+
+    ```yaml
+    stages:
+      - build
+      - test # Add this stage
+    ```
+
+2.  **Create a `test_job`:**
+    * Define a new job, let's call it `test_job`, and assign it to the `test` stage.
+
+3.  **Specify the Docker image:**
+    * Just like our `build_job`, the `test_job` will also need a `node:lts-alpine` (or similar Node.js image) as its execution environment. Remember, each job runs in a fresh container.
+
+4.  **Define the test script:**
+    * The `script` section of your `test_job` should execute the command that runs your project's tests. For many Node.js projects, this is simply `npm test`.
+
+    ```yaml
+    test_job:
+      stage: test
+      image: node:lts-alpine # Or inherit from top-level image
+      script:
+        - npm test
+    ```
+
+5.  **Consider dependencies (Crucial for `test` stage):**
+    * Remember that each job starts in a clean environment. If your tests require `node_modules` (which they almost certainly will), you'll need to run `npm install` within the `test_job` *before* running `npm test`.
+    * Alternatively, if your `build` job generates artifacts that include `node_modules` (though this is less common for frontend builds, it's good to be aware of artifact reuse), you could use the `needs` keyword to fetch artifacts from the `build` stage. For this assignment, a fresh `npm install` in the `test_job` is simpler and more typical.
+
+    **Refined `test_job` example:**
+
+    ```yaml
+    test_job:
+      stage: test
+      image: node:lts-alpine
+      script:
+        - npm install # Install dependencies for the test environment
+        - npm test    # Run the tests
+      # You might also want to set coverage reports as artifacts, which we'll cover later
+    ```
+
+6.  **Commit and Push:**
+    * Save your updated `.gitlab-ci.yml`, commit it, and push to your GitLab repository.
+
+7.  **Observe and Verify:**
+    * Watch your pipeline run in GitLab. You should now see both a `build` stage and a `test` stage.
+    * Ensure the `test_job` passes successfully. If it fails, examine the job logs for error messages, which will help you debug your tests or the CI configuration.
+
+By successfully adding this `test` stage, you're making a significant leap in building a robust CI pipeline that not only builds but also validates your application's integrity with every single change.
+
+---
+
+
+Okay, let's craft a clear and direct section about running unit tests within the GitLab CI/CD pipeline.
+
+---
+
+### Running Unit Tests
+
+Now that we've set up a dedicated `test` stage in our GitLab CI/CD pipeline, the next logical step is to ensure our **unit tests** are executed reliably within this automated environment. Unit tests are the foundation of our testing strategy, quickly verifying that individual components of our application work as expected.
+
+#### What are Unit Tests?
+
+**Unit tests** are the smallest, most isolated tests you can write. They focus on testing a single "unit" of code—which could be a function, a method, or a class—in isolation from its dependencies. The goal is to verify that each unit performs its intended behavior accurately and efficiently.
+
+#### Integrating Unit Tests into GitLab CI
+
+For most JavaScript applications, unit tests are executed using a testing framework (like **Jest**, **Mocha**, or **Vitest**) and are typically triggered via a script defined in your `package.json` file. The standard command for this is usually `npm test`.
+
+When our **`test_job`** runs in GitLab CI, the following steps are crucial:
+
+1.  **Environment Setup:** Just like our build job, the `test_job` starts with a clean Docker container based on our chosen Node.js image (e.g., `node:lts-alpine`). This ensures a consistent testing environment.
+2.  **Dependency Installation:** Before tests can run, their dependencies need to be installed. This is why the `npm install` command is critical at the beginning of our `test_job`'s `script` section.
+3.  **Test Execution:** After dependencies are in place, the `npm test` command is executed. Your testing framework then discovers and runs all defined unit tests.
+4.  **Reporting Results:** The output of these tests (whether they pass or fail) is streamed to the job logs in GitLab. A successful test run will allow the job to pass, while any failing tests will cause the job (and thus the pipeline stage) to fail, immediately alerting you to issues.
+
+#### Example `test_job` Configuration
+
+Here's how a typical `test_job` configured to run unit tests might look in your `.gitlab-ci.yml`:
+
+```yaml
+# ... (previous sections like 'image' and 'stages')
+
+test_job:
+  stage: test
+  image: node:lts-alpine # Ensures a consistent Node.js environment for tests
+  script:
+    - npm install       # Install project dependencies required for tests
+    - npm test          # Execute the unit tests
+  # We'll cover test reports as artifacts in a later section!
+```
+
+By explicitly running `npm test` within our `test_job`, we establish an automated gate. Any code change that introduces a regression detected by our unit tests will prevent the pipeline from progressing, providing immediate feedback and maintaining code quality.
+
+---
+
