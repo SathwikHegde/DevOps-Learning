@@ -426,5 +426,54 @@ While parallelism is great for speed, sometimes jobs *do* have dependencies with
 By structuring your `.gitlab-ci.yml` to take advantage of parallel job execution, you can significantly accelerate your CI/CD feedback loop, making your development process more efficient and responsive.
 
 ---
+Let's make this section on default pipeline stages clear, structured, and informative for your README.
 
-How does this expanded explanation of parallel job execution in GitLab CI/CD sound?
+---
+
+### Understanding Default Pipeline Stages
+
+As we've been building our GitLab CI/CD pipeline, you might have noticed that jobs are organized into "stages," and these stages run sequentially. GitLab CI/CD comes with a set of predefined, **default pipeline stages** that provide a logical flow for most CI/CD workflows. While you can define any custom stages you like, understanding these defaults helps in structuring a robust and conventional pipeline.
+
+If you don't explicitly define `stages:` in your `.gitlab-ci.yml`, or if you simply assign a job to a stage that doesn't exist, GitLab will use these default stages in the following order:
+
+1.  **`.pre` (Special Pre-Stage)**
+    * This is a special, hidden stage that runs **before any other defined stages**.
+    * It's primarily used for jobs that need to run very early in the pipeline, often for setup or validation that must occur before even the `build` stage begins.
+    * You explicitly assign a job to this stage using `stage: .pre`.
+    * **Example Use Case:** Code formatting checks that shouldn't block the build but should provide early feedback, environment setup jobs that prepare caches or dependencies.
+
+2.  **`build`**
+    * This is the standard stage for jobs that **compile, package, or otherwise prepare your application's source code**.
+    * For our `learn-gitlab-app`, this is where `npm install` and `npm run build` happen, generating the deployable `build/` artifacts.
+    * **Example Use Case:** Compiling source code (Java, C++), transpiling (TypeScript to JavaScript), bundling frontend assets (Webpack, Parcel), creating Docker images.
+
+3.  **`test`**
+    * The dedicated stage for **running automated tests** against your application.
+    * As we've seen, this is where unit tests, integration tests, and potentially other automated quality checks reside.
+    * **Example Use Case:** Executing unit tests, integration tests, static code analysis, security scans.
+
+4.  **`deploy`**
+    * This stage is reserved for jobs responsible for **deploying your application** to various environments.
+    * You might have multiple deployment jobs within this stage, targeting different environments (e.g., `deploy_staging`, `deploy_production`).
+    * **Example Use Case:** Deploying to development, staging, or production servers; pushing Docker images to a registry; updating Kubernetes manifests.
+
+5.  **`.post` (Special Post-Stage)**
+    * Similar to `.pre`, this is a special, hidden stage that runs **after all other defined stages** have completed (regardless of their success or failure).
+    * It's ideal for cleanup, notification, or reporting tasks that should always happen at the very end of a pipeline.
+    * You explicitly assign a job to this stage using `stage: .post`.
+    * **Example Use Case:** Sending pipeline completion notifications, cleaning up temporary resources, generating final reports.
+
+#### Visualizing the Flow
+
+```
++----------------+       +-----------+       +-----------+       +-----------+       +-----------+
+|    .pre Job    | ----> | build Job | ----> | test Job  | ----> | deploy Job| ----> | .post Job |
+| (Optional Setup)|       | (Compile) |       | (Validate)|       | (Release) |       | (Cleanup) |
++----------------+       +-----------+       +-----------+       +-----------+       +-----------+
+```
+
+By understanding these default stages, you can structure your `.gitlab-ci.yml` in a conventional and easily understandable manner, making your CI/CD pipelines more robust and maintainable. While you're free to define custom stages, adhering to these logical boundaries often simplifies pipeline design.
+
+---
+
+
