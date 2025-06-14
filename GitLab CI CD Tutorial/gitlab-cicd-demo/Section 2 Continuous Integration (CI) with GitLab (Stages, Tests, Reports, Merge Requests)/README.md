@@ -1948,3 +1948,117 @@ complex_deploy_job:
 By mastering `rules`, you gain fine-grained control over your GitLab CI/CD pipelines, making them more intelligent, efficient, and tailored to your project's exact needs. This is a fundamental skill for building advanced and scalable CI/CD workflows.
 
 ---
+---
+
+### Scripts: `before_script` and `after_script` - Setting Up and Tearing Down Jobs
+
+In GitLab CI/CD, each **job** in your pipeline executes a series of commands defined in its `script` section. However, many jobs require setup before their main task and cleanup afterwards. This is where the `before_script` and `after_script` keywords become incredibly useful, providing dedicated hooks for these common patterns.
+
+These keywords help you organize your job definitions, reduce repetition, and ensure that setup and cleanup steps are consistently applied.
+
+#### Understanding `before_script`
+
+The `before_script` keyword defines commands that will run **before** the main commands in a job's `script` section. It's ideal for tasks that prepare the environment or necessary dependencies for the job's primary purpose.
+
+* **Scope:** `before_script` can be defined at two levels:
+    * **Globally (at the top level of `.gitlab-ci.yml`):** Commands defined here run before *every* job in the entire pipeline. This is useful for very common setup steps across all jobs (e.g., global dependency installation, repository configuration).
+    * **Per-Job:** Commands defined within a specific job's `before_script` run only before that particular job's `script`. This is more common for job-specific preparations.
+* **Execution Order:** If `before_script` is defined both globally and per-job, the global `before_script` runs first, followed by the job-specific `before_script`, and then the main `script`.
+* **Failure Behavior:** If any command in `before_script` fails, the entire job immediately fails, and the main `script` is not executed. This ensures that the main job logic only runs if the prerequisites are met.
+
+**Common Use Cases for `before_script`:**
+
+* **Dependency Installation:** Running `npm install`, `composer install`, `pip install -r requirements.txt`, or `apk add` (for system packages). This is essential if your `script` commands rely on these dependencies.
+* **Authentication:** Logging into cloud providers (`aws configure`, `gcloud auth`), Docker registries (`docker login`), or other external services.
+* **Environment Preparation:** Creating temporary directories, setting up configuration files, or exporting environment variables specific to the job's runtime.
+
+**Example `before_script`:**
+
+```yaml
+# Global before_script (runs for all jobs)
+default:
+  before_script:
+    - echo "Executing global setup for pipeline..."
+    - git config user.email "ci@example.com"
+    - git config user.name "GitLab CI"
+
+stages:
+  - build
+  - test
+
+build_job:
+  stage: build
+  image: node:lts-alpine
+  before_script: # Job-specific before_script
+    - echo "Starting build job setup..."
+    - npm install --loglevel verbose # Install dependencies before building
+  script:
+    - npm run build # Main build command
+  artifacts:
+    paths:
+      - build/
+
+test_job:
+  stage: test
+  image: node:lts-alpine
+  before_script: # Job-specific before_script
+    - echo "Starting test job setup..."
+    - npm install # Ensures dev dependencies needed for tests are present
+  script:
+    - npm test # Main test command
+  artifacts:
+    reports:
+      junit: test-results/junit.xml
+```
+
+#### Understanding `after_script`
+
+The `after_script` keyword defines commands that will run **after** the main commands in a job's `script` section, regardless of whether the main `script` succeeded or failed. It's perfect for cleanup or notification tasks.
+
+* **Scope:** Like `before_script`, `after_script` can be defined globally or per-job. Global `after_script` runs after every job.
+* **Execution Order:** The `after_script` commands run *after* the `script` commands. If both global and job-specific `after_script` are present, the job-specific one runs first, followed by the global one.
+* **Failure Behavior:** Commands in `after_script` are executed even if the main `script` (or `before_script`) fails. If an `after_script` itself fails, it does *not* cause the overall job to fail (the job's status is determined by the `script` and `before_script`).
+
+**Common Use Cases for `after_script`:**
+
+* **Cleanup:** Removing temporary files, clearing caches, or deactivating environments.
+* **Notifications:** Sending success/failure alerts to Slack, email, or other communication channels.
+* **Reporting:** Uploading final logs or performance metrics, or updating external dashboards.
+
+**Example `after_script`:**
+
+```yaml
+# Global after_script (runs after every job)
+default:
+  after_script:
+    - echo "Global cleanup and notification..."
+    - # Example: curl -X POST -H "Content-Type: application/json" --data "{\"text\":\"Pipeline finished for ${CI_PROJECT_NAME}! Status: ${CI_JOB_STATUS}\"}" $SLACK_WEBHOOK_URL
+
+stages:
+  - deploy
+
+deploy_production:
+  stage: deploy
+  image: ubuntu:latest # Placeholder image
+  script:
+    - echo "Attempting production deployment..."
+    - # Your deployment commands here (e.g., push to server, update K8s)
+  after_script: # Job-specific after_script
+    - echo "Deployment job finished. Checking logs for anomalies..."
+    - # Example: ssh user@prod_server 'tail /var/log/app/deployment.log'
+    - # Example: curl -X POST -d "Deployment job finished." $SOME_MONITORING_API_ENDPOINT
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+```
+
+#### Benefits of `before_script` and `after_script`
+
+* **Clarity and Readability:** Separates setup/teardown logic from the core job task.
+* **Reusability:** Global `before_script` and `after_script` reduce duplication across multiple jobs.
+* **Guaranteed Execution:** `after_script` ensures cleanup or reporting happens even if the main job logic fails.
+* **Error Isolation:** Problems in `before_script` clearly indicate environment setup issues, while problems in `script` point to core application/test logic issues.
+
+By effectively utilizing `before_script` and `after_script`, you can create cleaner, more reliable, and easier-to-debug CI/CD jobs in your GitLab pipeline.
+
+---
