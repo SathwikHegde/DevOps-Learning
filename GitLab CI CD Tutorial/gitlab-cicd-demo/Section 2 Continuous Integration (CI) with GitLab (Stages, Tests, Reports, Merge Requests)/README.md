@@ -2062,3 +2062,93 @@ deploy_production:
 By effectively utilizing `before_script` and `after_script`, you can create cleaner, more reliable, and easier-to-debug CI/CD jobs in your GitLab pipeline.
 
 ---
+
+When writing documentation, especially for something like a README file, the terms `before_script` and `after_script` often refer to commands or processes that run **before** and **after** a main execution step. These are commonly found in configuration files for:
+
+* **Continuous Integration/Continuous Deployment (CI/CD) pipelines:** Think of tools like GitLab CI/CD, GitHub Actions, Travis CI, Jenkins, etc.
+* **Build automation tools:** Such as Makefiles, Rake, or npm scripts.
+* **Testing frameworks:** Where you might need to set up a test environment (`before_script`) and then clean it up (`after_script`).
+
+---
+
+## Understanding `before_script` and `after_script`
+
+### `before_script`
+
+The `before_script` block defines commands that execute **prior to the main script or command** in a given job or process. Its primary purpose is to set up the environment, prepare dependencies, or perform any necessary prerequisite tasks.
+
+**Common uses:**
+
+* **Installing dependencies:** `npm install`, `bundle install`, `pip install -r requirements.txt`
+* **Setting environment variables:** Exporting keys or paths needed for the main process.
+* **Logging in to services:** Authenticating with cloud providers or registries.
+* **Compiling necessary assets:** If certain files need to be pre-compiled before the main build or test.
+* **Database setup:** Running migrations or seeding a test database.
+
+### `after_script`
+
+The `after_script` block defines commands that execute **after the main script or command** has completed, regardless of whether the main script succeeded or failed. Its main purpose is to clean up the environment, perform post-execution tasks, or generate reports.
+
+**Common uses:**
+
+* **Cleaning up temporary files:** Removing build artifacts or downloaded dependencies.
+* **Generating reports:** Creating test coverage reports or deployment summaries.
+* **Notifying stakeholders:** Sending messages to Slack, email, or other communication channels about the job's status.
+* **Logging out of services:** Disconnecting from authenticated sessions.
+* **Uploading artifacts:** Storing build outputs or test results to an external storage.
+
+---
+
+## Example in a CI/CD Context (e.g., GitLab CI/CD)
+
+```yaml
+# .gitlab-ci.yml
+
+stages:
+  - build
+  - test
+  - deploy
+
+build_job:
+  stage: build
+  script:
+    - echo "Starting build..."
+    - npm run build # Main build command
+
+test_job:
+  stage: test
+  before_script:
+    - echo "Installing test dependencies..."
+    - npm install    # Runs BEFORE the 'script' block
+    - npm cache clean --force
+  script:
+    - echo "Running tests..."
+    - npm test       # Main test command
+  after_script:
+    - echo "Cleaning up test environment..."
+    - rm -rf node_modules # Runs AFTER the 'script' block, even if tests fail
+    - echo "Test job finished."
+
+deploy_job:
+  stage: deploy
+  script:
+    - echo "Deploying application..."
+    - deploy_to_production.sh
+```
+
+In this example:
+
+* For `test_job`, `npm install` and `npm cache clean --force` run *before* `npm test`.
+* `rm -rf node_modules` and `echo "Test job finished."` run *after* `npm test`, ensuring cleanup even if the tests don't pass.
+
+---
+
+## Best Practices for Using `before_script` and `after_script`
+
+* **Keep them concise:** Only include essential commands. Complex logic should ideally be moved to separate scripts called from these blocks.
+* **Idempotency:** Ensure commands can be run multiple times without unintended side effects.
+* **Error handling:** For `after_script`, remember it runs even on failure, so commands here should be robust.
+* **Logging:** Include `echo` statements or similar logging to make it clear what's happening in these phases, which is crucial for debugging.
+* **Avoid redundancy:** Don't repeat commands that are already handled by other stages or scripts.
+
+Understanding `before_script` and `after_script` is fundamental for setting up robust and maintainable automated workflows, whether for development, testing, or deployment.
