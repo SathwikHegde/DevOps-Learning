@@ -2152,3 +2152,120 @@ In this example:
 * **Avoid redundancy:** Don't repeat commands that are already handled by other stages or scripts.
 
 Understanding `before_script` and `after_script` is fundamental for setting up robust and maintainable automated workflows, whether for development, testing, or deployment.
+
+---
+
+### Deployment Strategies: Non-Production Environments
+
+While getting our application to production is the ultimate goal, it's equally crucial to have robust deployment strategies for our **non-production environments**. These environments — typically **development**, **staging**, and **UAT (User Acceptance Testing)** — serve as vital stepping stones, allowing us to build, test, and validate changes in controlled settings before they impact live users.
+
+Think of non-production environments as your testing grounds. They help you catch bugs, identify performance issues, and gather feedback from stakeholders without the risk associated with a live release.
+
+#### Why Dedicated Non-Production Environments?
+
+* **Risk Mitigation:** Isolate new features or bug fixes from the production system, preventing errors from reaching end-users.
+* **Faster Iteration:** Developers can quickly deploy and test their changes in an environment that closely mirrors production, getting rapid feedback.
+* **Quality Assurance:** Provide dedicated spaces for QA teams to perform thorough testing (manual, integration, E2E) on stable builds.
+* **Stakeholder Feedback:** Allow product owners, designers, and other non-technical stakeholders to review and approve features before release.
+* **Realistic Testing:** Create environments that mimic production data, network conditions, or integrations as closely as possible.
+
+#### Common Non-Production Deployment Strategies
+
+Here are the typical non-production environments and their common deployment approaches within a GitLab CI/CD context:
+
+1.  **Development Environment (Dev)**
+    * **Purpose:** Primarily for individual developers or small teams to test their work in progress. It's often highly fluid and might not require strict stability.
+    * **Trigger:** Often deployed automatically on every push to feature branches or a shared `develop` branch.
+    * **Deployment Method:**
+        * **Automatic Push-to-Deploy:** CI/CD job triggers a deployment immediately after a successful build on a dev-related branch.
+        * **Review Apps (GitLab Feature):** GitLab can dynamically create temporary, per-merge-request environments. This is excellent for isolating changes and getting immediate visual feedback on an isolated deployment.
+    * **Example in `.gitlab-ci.yml`:**
+
+        ```yaml
+        # Job to deploy to a shared dev environment on 'develop' branch pushes
+        deploy_dev:
+          stage: deploy
+          image: your/deploy-tool-image # e.g., kubectl, docker, custom script
+          script:
+            - echo "Deploying to shared development environment..."
+            # Commands to update dev environment
+          environment:
+            name: development
+            url: https://dev.your-app.com
+          rules:
+            - if: '$CI_COMMIT_BRANCH == "develop"' # Auto-deploy on pushes to 'develop'
+              when: on_success
+
+        # Review App deployment (triggered by Merge Requests)
+        deploy_review_app:
+          stage: review # A dedicated stage for review apps
+          image: your/deploy-tool-image
+          script:
+            - echo "Deploying Review App for MR $CI_MERGE_REQUEST_IID..."
+            # Commands to deploy to a unique URL for the MR
+          environment:
+            name: review/$CI_COMMIT_REF_NAME # Unique name per branch/MR
+            url: https://$CI_ENVIRONMENT_SLUG.your-review-app.com
+            on_stop: stop_review_app # Define a job to clean up
+          rules:
+            - if: '$CI_PIPELINE_SOURCE == "merge_request_event"' # Only for MR pipelines
+              when: on_success
+
+        stop_review_app:
+          stage: review # Same stage as deploy_review_app
+          image: your/deploy-tool-image
+          script:
+            - echo "Stopping Review App for $CI_ENVIRONMENT_SLUG..."
+            # Commands to tear down the review app
+          when: manual # Typically manual, or on_succeeded/on_failed to run when MR is closed
+          environment:
+            name: review/$CI_COMMIT_REF_NAME
+            action: stop
+        ```
+
+2.  **Staging Environment (Staging/QA)**
+    * **Purpose:** A production-like environment for final quality assurance, regression testing, and integration testing with other systems. It should mimic production as closely as possible in terms of infrastructure, data, and integrations.
+    * **Trigger:** Often deployed automatically from the `main` (or release) branch after all CI tests pass, or sometimes manually triggered to control release cycles.
+    * **Deployment Method:** Highly automated, typically pushing the same artifacts (e.g., Docker images) that will eventually go to production.
+    * **Example in `.gitlab-ci.yml`:**
+
+        ```yaml
+        deploy_staging:
+          stage: deploy
+          image: your/deploy-tool-image
+          script:
+            - echo "Deploying to staging environment..."
+            # Commands for staging deployment, using $STAGING_DB_URL, $STAGING_API_KEY etc.
+          environment:
+            name: staging
+            url: https://staging.your-app.com
+          rules:
+            - if: '$CI_COMMIT_BRANCH == "main"' # Auto-deploy latest 'main' to staging
+              when: on_success
+            # - if: '$CI_COMMIT_BRANCH == "main"' # Alternative: Manual deploy to staging
+            #   when: manual
+        ```
+
+3.  **User Acceptance Testing (UAT) Environment (Optional but Recommended)**
+    * **Purpose:** For non-technical stakeholders (product owners, business users) to validate features and ensure they meet business requirements from a user's perspective. It bridges the gap between technical QA and real-world usage.
+    * **Trigger:** Usually a manual deployment, initiated by QA or a release manager, to a stable build that has passed all automated and QA tests.
+    * **Deployment Method:** Similar to staging, but perhaps with specific UAT data sets or configurations.
+    * **Example in `.gitlab-ci.yml`:**
+
+        ```yaml
+        deploy_uat:
+          stage: deploy
+          image: your/deploy-tool-image
+          script:
+            - echo "Deploying to UAT environment for user acceptance..."
+            # Commands for UAT deployment, using $UAT_DB_URL, $UAT_API_KEY etc.
+          environment:
+            name: uat
+            url: https://uat.your-app.com
+          rules:
+            - if: '$CI_COMMIT_BRANCH == "main"' # Only show job on main branch pipelines
+              when: manual # Requires manual trigger by UAT team
+        ```
+
+By thoughtfully implementing these deployment strategies for your non-production environments, you build a robust and reliable pathway to production, ensuring quality at every step.
+
