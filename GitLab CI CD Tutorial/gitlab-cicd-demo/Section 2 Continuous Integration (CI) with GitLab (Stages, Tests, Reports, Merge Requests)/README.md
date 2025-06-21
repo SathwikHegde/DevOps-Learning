@@ -2494,4 +2494,97 @@ Understanding this distinction is vital for designing effective and responsible 
 
 ---
 
+### Creating Review Environments: Dynamic Feedback for Merge Requests
 
+Review environments, also known as dynamic environments or ephemeral environments, are a powerful feature in GitLab CI/CD. They automatically deploy changes from Merge Requests (MRs) to temporary, isolated environments, allowing for real-time feedback and validation *before* code is merged into the main branch.
+
+Think of them as on-demand, short-lived staging areas, tailored to each MR.
+
+#### Why Use Review Environments?
+
+  * **Visual Feedback:** Reviewers can see the changes live, interacting with the application in a realistic setting. This is far more effective than just reading code.
+  * **Isolated Testing:** Each MR gets its own environment, preventing conflicts and ensuring that changes are tested in isolation.
+  * **Faster Iteration:** Developers get rapid feedback, enabling quicker bug fixes and improvements.
+  * **Stakeholder Alignment:** Product owners, designers, and other non-technical stakeholders can easily review and approve changes.
+  * **Reduced Risk:** By validating changes in a temporary environment, you reduce the risk of introducing regressions into your main staging or production environments.
+  * **Automated Cleanup:** Review environments are typically automatically torn down when the MR is merged or closed, saving resources.
+
+#### Setting Up Review Environments in GitLab CI/CD
+
+Here's how you'd typically configure a review environment deployment in your `.gitlab-ci.yml`:
+
+```yaml
+stages:
+  - build
+  - test
+  - review # Dedicated stage for review environments
+  - deploy # (Staging/Production deployment)
+
+# ... (build and test jobs)
+
+deploy_review:
+  stage: review
+  image: your/deploy-image:latest # Example: Docker image with kubectl, docker-compose, etc.
+  script:
+    - echo "Deploying review environment for MR $CI_MERGE_REQUEST_IID..."
+    # Your deployment commands go here.
+    # Often, you'll use environment variables to customize the deployment
+    # (e.g., unique database names, subdomains).
+    # Example using Docker Compose:
+    # - docker-compose -f docker-compose.yml -f docker-compose.review.yml up -d
+    # Example using Kubernetes:
+    # - kubectl apply -f kubernetes/review-deployment.yaml
+    # - kubectl apply -f kubernetes/review-service.yaml
+  environment:
+    name: review/$CI_COMMIT_REF_NAME # Unique name per branch
+    url: https://$CI_ENVIRONMENT_SLUG.your-review-app.com # Dynamic URL
+    on_stop: stop_review # Define a job to stop/remove the environment
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"' # Only run for MR pipelines
+      when: on_success # Deploy after build and tests pass
+
+stop_review:
+  stage: review
+  image: your/deploy-image:latest # Same image as deploy_review
+  script:
+    - echo "Stopping review environment $CI_ENVIRONMENT_SLUG..."
+    # Commands to tear down the environment
+    # Example: docker-compose down
+    # Example: kubectl delete namespace $CI_ENVIRONMENT_SLUG
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    action: stop # Tells GitLab this job stops the environment
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"' # Only for MR pipelines
+      when: manual # Typically triggered manually when the MR is closed
+```
+
+**Key Configuration Points:**
+
+  * **Dedicated `review` Stage:** It's good practice to have a separate stage for review environment deployments.
+  * **`$CI_MERGE_REQUEST_IID`:** A GitLab CI/CD variable that provides the unique ID of the current Merge Request. This is useful for creating unique resources.
+  * **`$CI_COMMIT_REF_NAME`:** The branch name of the MR.
+  * **`$CI_ENVIRONMENT_SLUG`:** A URL-friendly version of the branch name, used for generating unique URLs.
+  * **`environment:` Block:**
+      * **`name:`:** Creates a unique environment name, often using the branch name.
+      * **`url:`:** Defines the URL where the review environment will be accessible. Using `$CI_ENVIRONMENT_SLUG` creates dynamic subdomains.
+      * **`on_stop:`:** Specifies a job (`stop_review` in this example) that will be triggered to clean up the environment.
+  * **`rules:`:**
+      * **`if: '$CI_PIPELINE_SOURCE == "merge_request_event"'`:** Ensures that the `deploy_review` job *only* runs for pipelines triggered by Merge Requests.
+      * **`when: on_success`:** Deploys the review environment after the build and test stages pass.
+  * **`stop_review` Job:** This job defines how to tear down the review environment. The `environment:action: stop` keyword tells GitLab that this job is responsible for cleaning up.
+
+#### Deployment Strategies for Review Environments
+
+  * **Docker Compose:** If your application is containerized, Docker Compose is a common way to spin up a review environment. You might have a base `docker-compose.yml` and a `docker-compose.review.yml` for overrides specific to review environments (e.g., unique port mappings, test databases).
+  * **Kubernetes:** For Kubernetes deployments, you'll likely create temporary namespaces or use unique labels to isolate review environment resources.
+  * **Serverless:** If using serverless functions, you might deploy to temporary function names or API Gateway stages.
+  * **Custom Scripts:** You can use any scripting language to deploy your application, as long as the script can dynamically configure the environment.
+
+#### Benefits of This Approach
+
+  * **Dynamic URLs:** GitLab automatically creates a link to the review environment within the Merge Request, making it easy for reviewers to access.
+  * **Automatic Cleanup:** The `stop_review` job ensures that resources are released when the MR is closed, preventing resource leaks.
+  * **Integration with GitLab UI:** GitLab tracks review environments, making it easy to see their status and access them directly from the MR.
+
+By implementing review environments, you significantly improve the collaboration and quality of your development process, leading to faster and more reliable releases for your `learn-gitlab-app`.
