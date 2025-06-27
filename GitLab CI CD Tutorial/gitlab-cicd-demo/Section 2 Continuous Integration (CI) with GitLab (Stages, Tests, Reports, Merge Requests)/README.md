@@ -3186,3 +3186,127 @@ deploy_to_production:
 By strategically defining and deploying to static environments, you create a robust and predictable path for your `learn-gitlab-app` to move from development to production, ensuring stability and control at every critical stage.
 
 -----
+-----
+
+### Scoping Variables to a Specific Environment: Tailoring Configuration for Each Stage
+
+In a robust CI/CD pipeline, your application's configuration often varies depending on the environment it's deployed to. For instance:
+
+  * **Development** might use a local SQLite database and mock APIs.
+  * **Staging** needs a more production-like PostgreSQL database and integrates with real (but test) third-party services.
+  * **Production** requires a highly performant, secure PostgreSQL database, live API keys, and perhaps different logging levels.
+
+Hardcoding these differences is inflexible and insecure. This is where **scoping CI/CD variables to specific environments** in GitLab becomes incredibly powerful. It allows you to define multiple values for the *same variable key*, each applying only when a job targets a particular environment.
+
+#### Why Scope Your Variables?
+
+  * **Security:** Prevents sensitive production secrets from accidentally being used or exposed in less secure development or staging environments.
+  * **Flexibility:** Easily manage different configurations without changing your `.gitlab-ci.yml` or application code for each deployment target.
+  * **Reduced Errors:** Ensures the correct credentials and settings are always used for the intended environment, preventing "wrong environment" bugs.
+  * **Clearer Management:** Centralizes environment-specific configuration within GitLab's UI, making it auditable and easy to update.
+  * **Compliance:** Helps meet security and compliance requirements by strictly controlling variable access.
+
+#### How to Scope Variables in GitLab CI/CD
+
+GitLab's CI/CD variable management UI provides direct support for environment scoping.
+
+1.  **Navigate to Variables:**
+    Go to your GitLab project \> **Settings \> CI/CD \> Variables**.
+
+2.  **Add/Edit a Variable:**
+    When you add a new variable or edit an existing one, you'll see an "Environment scope" field.
+
+      * **Key:** The name of your variable (e.g., `DATABASE_URL`, `API_KEY`, `LOG_LEVEL`).
+
+      * **Value:** The actual value for this variable.
+
+      * **Type:** `Variable` or `File`.
+
+      * **Protect variable:** (Highly recommended for secrets) If checked, the variable is only passed to jobs running on protected branches or tags.
+
+      * **Mask variable:** (Highly recommended for secrets) If checked, the variable's value is hidden in job logs if it meets masking requirements (min 8 chars).
+
+      * **Environment Scope:** This is the crucial part.
+
+          * **`*` (Wildcard):** This is the default. The variable applies to *all* environments defined in your pipeline.
+          * **Specific Environment Name:** Type the exact name of your environment (e.g., `production`, `staging`, `review/*`, `development`). The variable will only be available when a job targets an environment with that specific name.
+          * **Wildcard Matching:** You can use wildcards in environment names (e.g., `review/*` will match `review/feature-branch-1`, `review/bug-fix-2`). This is invaluable for dynamic review environments.
+
+**Example Setup in GitLab UI:**
+
+Imagine you have three environments defined in your `.gitlab-ci.yml`: `development`, `staging`, and `production`.
+
+| Key          | Value                       | Environment Scope | Protect | Mask  | Notes                                            |
+| :----------- | :-------------------------- | :---------------- | :------ | :---- | :----------------------------------------------- |
+| `DATABASE_URL` | `postgresql://dev_db_url`   | `development`     | No      | No    | Specific to dev environment                      |
+| `DATABASE_URL` | `postgresql://stg_db_url`   | `staging`         | Yes     | Yes   | Production-like DB for staging                   |
+| `DATABASE_URL` | `postgresql://prod_db_url`  | `production`      | Yes     | Yes   | Highly sensitive, production DB URL              |
+| `API_KEY`      | `abc-123-dev-key`           | `development`     | No      | No    | Less sensitive dev API key                       |
+| `API_KEY`      | `xyz-456-prod-key`          | `production`      | Yes     | Yes   | Live production API key                          |
+| `LOG_LEVEL`    | `DEBUG`                     | `development`     | No      | No    | More verbose logging for dev                     |
+| `LOG_LEVEL`    | `INFO`                      | `*` (Wildcard)    | No      | No    | Default for all, unless overridden by specific scope |
+
+#### How Variables are Used in Your `.gitlab-ci.yml`
+
+Your jobs simply declare which environment they are deploying to using the `environment:` keyword. GitLab automatically injects the correct variables based on the scope.
+
+```yaml
+# .gitlab-ci.yml
+
+stages:
+  - deploy
+
+# Job for deploying to Development environment
+deploy_to_development:
+  stage: deploy
+  image: node:lts-alpine
+  script:
+    - echo "Deploying to development..."
+    - echo "DB URL: $DATABASE_URL" # Will get value from 'development' scope
+    - echo "Log Level: $LOG_LEVEL" # Will get value from 'development' scope
+    - npm run deploy-dev
+  environment:
+    name: development # This name matches the environment scope in GitLab UI
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"' # Auto-deploy on 'develop' branch pushes
+      when: on_success
+
+# Job for deploying to Staging environment
+deploy_to_staging:
+  stage: deploy
+  image: your/deploy-tool-image
+  script:
+    - echo "Deploying to staging..."
+    - echo "DB URL: $DATABASE_URL" # Will get value from 'staging' scope
+    - npm run deploy-staging
+  environment:
+    name: staging # This name matches the environment scope in GitLab UI
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"' # Auto-deploy on 'main' branch pushes
+      when: on_success
+
+# Job for deploying to Production environment
+deploy_to_production:
+  stage: deploy
+  image: your/production-deploy-image
+  script:
+    - echo "Deploying to production..."
+    - echo "DB URL: $DATABASE_URL" # Will get value from 'production' scope
+    - echo "API Key: $API_KEY" # Will get value from 'production' scope
+    - npm run deploy-prod
+  environment:
+    name: production # This name matches the environment scope in GitLab UI
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual # Requires manual approval for production
+```
+
+#### Important Considerations
+
+  * **Order of Precedence:** If a variable is defined with a wildcard (`*`) scope *and* a more specific environment scope, the **most specific scope takes precedence**.
+  * **Protected Branches:** Ensure your environment names align with your protected branch settings if you use protected variables. For a variable scoped to `production` and marked `Protected`, the job must be running on a protected branch or tag that is allowed to use `production` environments.
+  * **File Variables:** Scoping also applies to `File` type variables, ensuring that environment-specific certificates or configuration files are injected correctly.
+
+By effectively scoping your CI/CD variables, you create a cleaner, more secure, and highly adaptable pipeline for your `learn-gitlab-app`, ensuring that each environment gets precisely the configuration it needs.
+
+-----
