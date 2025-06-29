@@ -3377,3 +3377,112 @@ Here's how we'll leverage MRs to simulate a real-world project:
 By consciously working through these steps with `learn-gitlab-app` and utilizing GitLab's robust Merge Request features, you'll gain practical experience in collaborative CI/CD, preparing you for real-world development challenges.
 
 ---
+
+-----
+
+### End-to-End Tests with Playwright (E2E Tests): Simulating User Journeys
+
+As our `learn-gitlab-app` grows, ensuring that all its pieces work together seamlessly, from the user interface down to the database, becomes critical. This is the realm of **End-to-End (E2E) testing**. E2E tests simulate real user interactions with the complete application, verifying that the entire system behaves as expected from start to finish.
+
+For modern web applications, **Playwright** has emerged as a powerful and reliable framework for writing robust E2E tests.
+
+#### Why End-to-End Testing is Essential
+
+  * **Holistic Validation:** E2E tests cover the entire application stack, including the UI, API, database, and integrations with external services.
+  * **User Journey Verification:** They confirm that critical user flows (e.g., login, signup, checkout, data submission) work correctly, mimicking how a real user would interact with your application.
+  * **Regression Prevention:** Catches regressions that might be missed by unit or integration tests, especially those related to how different components interact.
+  * **Increased Confidence:** Passing E2E tests provide high confidence that your application is functional and ready for deployment.
+  * **Business Assurance:** Directly validates features against business requirements from a user's perspective.
+
+#### Why Playwright for E2E Tests?
+
+Playwright, developed by Microsoft, offers several compelling advantages for E2E testing:
+
+  * **Multi-Browser Support:** Supports Chromium, Firefox, and WebKit (Safari's engine) with a single API, ensuring cross-browser compatibility.
+  * **Language Support:** Provides APIs for TypeScript, JavaScript, Python, .NET, and Java. (We'll focus on **JavaScript/TypeScript** for web apps).
+  * **Auto-Waiting:** Automatically waits for elements to be ready, reducing flakiness and simplifying test code.
+  * **Powerful Selectors:** Robust and resilient selectors (including text, CSS, and XPath) that make tests less prone to breaking due to minor UI changes.
+  * **Built-in Capabilities:** Includes features like screenshotting, video recording, and tracing out of the box for excellent debugging.
+  * **Headless and Headed Modes:** Can run tests silently in the background (headless) for CI/CD or with a visible browser (headed) for debugging.
+
+#### Setting Up Playwright E2E Tests in GitLab CI/CD
+
+Integrating Playwright into your GitLab CI/CD pipeline typically involves these steps:
+
+1.  **Project Setup (Local):**
+
+      * Install Playwright in your project: `npm init playwright@latest`
+      * Write your E2E tests in the `tests/` directory (or wherever configured).
+      * Ensure your application can be run locally for testing (e.g., `npm start` for a dev server).
+
+2.  **Docker Image with Browser Dependencies:**
+    The most crucial step for CI/CD is using a Docker image that includes not only Node.js (or Python) but also the necessary browser binaries and their dependencies. Playwright provides official images perfect for this.
+
+    ```yaml
+    # .gitlab-ci.yml
+
+    stages:
+      - build
+      - test
+      - e2e
+
+    # ... (Your build and unit/integration test jobs)
+
+    e2e_tests:
+      stage: e2e
+      # Use an official Playwright Docker image that includes browsers and their dependencies
+      image: mcr.microsoft.com/playwright/node:lts-slim # or `mcr.microsoft.com/playwright/python:latest` if using Python
+      script:
+        - echo "Installing application dependencies..."
+        - npm install # Install your application's dependencies
+        - echo "Installing Playwright browsers..."
+        # Playwright images usually have browsers pre-installed, but if not, or for updates:
+        # - npx playwright install --with-deps
+
+        - echo "Starting the application in the background for E2E tests..."
+        # This command should start your web application (e.g., a Node.js server)
+        # It needs to run in the background so the test runner can connect to it.
+        # Ensure your app listens on a port accessible within the Docker container (e.g., 3000, 8080).
+        - npm run start & # Start your app's server in the background
+        - APP_PID=$! # Capture PID to potentially kill later
+        - echo "Waiting for the application to be ready (e.g., health check or delay)..."
+        - sleep 10 # Adjust this based on your app's startup time
+        # You might use `curl http://localhost:PORT/health` with retries for a more robust wait
+
+        - echo "Running Playwright E2E tests..."
+        - npx playwright test # Execute your Playwright tests
+
+        # Optional: Kill the background process if it doesn't exit automatically
+        - kill $APP_PID || true
+      artifacts:
+        when: always # Always upload artifacts (screenshots, videos, reports)
+        paths:
+          - playwright-report/ # Playwright's default report directory
+          - test-results/ # Where screenshots, videos, traces might be stored
+        expire_in: 1 week # Don't keep large artifacts indefinitely
+      rules:
+        - if: '$CI_COMMIT_BRANCH == "main"'
+          when: on_success
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+          when: on_success
+    ```
+
+<!-- end list -->
+
+```
+
+#### Key Considerations for E2E Tests in CI/CD
+
+* **Application Startup:** Your application must be running and accessible within the CI container *before* Playwright starts its tests. Use `&` to run the app in the background and a `sleep` or robust health check loop to wait for it to be ready.
+* **Port Exposure:** Ensure your application listens on a port that is accessible inside the Docker container (e.g., `localhost:3000`).
+* **Headless Mode:** Playwright runs in headless mode by default in CI, which is faster and doesn't require a graphical environment.
+* **Artifacts:** Always configure `artifacts` to save Playwright's test reports, screenshots, and videos. These are invaluable for debugging failed tests in CI.
+* **Database State:** For tests requiring a database, ensure you have a clean, known state before each test run (e.g., `npm run test:e2e:reset-db`). This often involves running database migrations or seeding data in a `before_script` or `beforeAll` hook in your test suite.
+* **Test Data:** Use dedicated test data or mock external APIs if necessary, to keep tests deterministic and isolated from live systems.
+* **Performance:** E2E tests can be slow. Run them strategically (e.g., only on `main` branch merges or on MRs, not every commit on every feature branch). Parallelization (supported by Playwright) can help.
+
+By integrating Playwright E2E tests into your GitLab CI/CD, you add a crucial layer of confidence, ensuring that your `learn-gitlab-app` provides a seamless and correct experience for your end-users across all critical workflows.
+
+---
+```
+
