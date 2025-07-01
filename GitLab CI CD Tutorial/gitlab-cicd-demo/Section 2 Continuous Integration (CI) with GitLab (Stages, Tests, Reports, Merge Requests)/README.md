@@ -3574,3 +3574,105 @@ When `generate_build_info` completes:
 By mastering the use of `dotenv` artifacts, you gain a powerful and flexible way to orchestrate complex workflows in your GitLab CI/CD pipelines, allowing jobs to collaborate and build upon each other's outputs.
 
 -----
+-----
+
+### Publishing the E2E JUnit Report: Visualizing Test Results in GitLab
+
+Running your E2E tests is one thing; making their results easily accessible and understandable to your entire team is another. GitLab CI/CD provides a powerful feature to ingest test reports in the standard **JUnit XML format** and display them directly in the Merge Request and Pipeline views. This is an invaluable tool for quickly assessing the impact of a change and debugging failures without digging through hundreds of lines of logs.
+
+This assignment focuses on configuring our Playwright E2E test job to generate a JUnit report and publishing it to GitLab.
+
+#### Why Publish JUnit Reports?
+
+  * **Merge Request Widget:** The most impactful feature. When you open a Merge Request, GitLab will show a summary of test results directly on the page, highlighting newly failed, fixed, and existing failures compared to the target branch.
+  * **Pipeline `Tests` Tab:** Provides a detailed, browsable list of all test suites and test cases from a pipeline run, including execution time and any error messages.
+  * **Faster Debugging:** A developer can see which specific tests failed, click on them to view details, and get a clear picture of the failure without sifting through the entire job log.
+  * **Quality Gates:** The report can be a key part of your merge strategy. If the E2E tests fail, you can prevent the MR from being merged.
+  * **Historical Data:** GitLab tracks test results over time, allowing you to see trends in test failures and performance.
+
+#### Generating a JUnit Report with Playwright
+
+Playwright has a built-in `junit` reporter that can generate JUnit XML files. We just need to configure it in `playwright.config.ts`.
+
+1.  **Configure the Reporter:**
+    In your `playwright.config.ts` file, specify the `junit` reporter and an `outputFile` path.
+
+    ```typescript
+    // playwright.config.ts
+    import { defineConfig } from '@playwright/test';
+
+    export default defineConfig({
+      // ... other Playwright configuration
+      testDir: './tests',
+      // ...
+      reporter: [
+        ['list'], // You can keep a terminal reporter for local runs
+        ['junit', { outputFile: 'test-results/e2e-junit-report.xml' }], // Add the JUnit reporter
+      ],
+      // ...
+    });
+    ```
+
+    This configuration tells Playwright to generate a JUnit XML file named `e2e-junit-report.xml` inside the `test-results/` directory every time tests are run.
+
+2.  **Ensure the Output Directory Exists:**
+    Make sure your test runner or a script creates the `test-results/` directory if it doesn't exist, as Playwright's reporter will try to write to it.
+
+#### Publishing the Report in `.gitlab-ci.yml`
+
+To tell GitLab to parse and display the JUnit report, you need to use the `artifacts:reports:junit` keyword in your E2E test job definition.
+
+```yaml
+# .gitlab-ci.yml
+
+stages:
+  - build
+  - test
+  - e2e
+
+# ... (Your build and unit/integration test jobs)
+
+e2e_tests:
+  stage: e2e
+  image: mcr.microsoft.com/playwright/node:lts-slim
+  script:
+    - echo "Installing application dependencies..."
+    - npm install
+    - echo "Starting the application in the background for E2E tests..."
+    - npm run start &
+    - sleep 10 # Wait for the app to be ready
+
+    - echo "Running Playwright E2E tests and generating JUnit report..."
+    - npx playwright test --reporter=junit --output=test-results/ # Run tests and specify output dir
+
+  artifacts:
+    when: always # Always upload artifacts, even on test failure
+    paths:
+      - test-results/ # This will save screenshots, videos, and other artifacts
+    reports:
+      junit: test-results/e2e-junit-report.xml # <-- This is the key part!
+    expire_in: 1 week # Clean up artifacts to save storage
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: on_success
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: on_success
+```
+
+#### What Happens When This Job Runs?
+
+1.  **Job Execution:** The `e2e_tests` job starts, pulling the Playwright Docker image and running your script.
+2.  **Test Run:** `npx playwright test` executes all your E2E tests.
+3.  **Report Generation:** As configured in `playwright.config.ts`, the `junit` reporter generates `test-results/e2e-junit-report.xml`.
+4.  **Artifact Upload:** The `artifacts:` section in your `.gitlab-ci.yml` tells GitLab to upload two types of artifacts after the job completes:
+      * **Regular Artifacts (`paths`):** The entire `test-results/` directory (including screenshots, traces, and the XML file itself) is saved as a downloadable archive.
+      * **Report Artifacts (`reports:junit`):** GitLab specifically parses the `e2e-junit-report.xml` file.
+5.  **UI Display:**
+      * **Merge Request:** If this pipeline is part of an MR, a test report widget will appear, showing a summary of test changes (newly failed, resolved, etc.).
+      * **Pipeline View:** A new `Tests` tab will be available on the pipeline's details page, offering a rich UI to browse all test suites and cases.
+
+By completing this assignment, you will have implemented a professional-grade feedback loop for your E2E tests, making your CI/CD pipeline for `learn-gitlab-app` even more transparent and effective.
+
+-----
+
+
