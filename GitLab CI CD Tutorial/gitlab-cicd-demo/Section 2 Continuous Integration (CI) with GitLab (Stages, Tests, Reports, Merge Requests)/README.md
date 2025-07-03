@@ -3803,4 +3803,148 @@ e2e_tests:
 By successfully completing this assignment, you will have implemented a professional-grade feedback loop for your E2E tests, making your CI/CD pipeline for `learn-gitlab-app` even more transparent, robust, and effective for your development team.
 
 -----
+The current date is Wednesday, July 2, 2025. Here's the beautified README file for Quiz 12, focusing on publishing E2E JUnit reports:
+
+-----
+
+### Quiz 12: Publishing the E2E JUnit Report - Step-by-Step Instructions
+
+This quiz challenges you to integrate **End-to-End (E2E) test reporting** into your GitLab CI/CD pipeline. Specifically, you will configure your Playwright tests to generate a **JUnit XML report** and then instruct GitLab to parse and display these results directly in the Merge Request and Pipeline views. This is a crucial step in making your CI/CD feedback loop more visual, immediate, and actionable for the entire development team.
+
+**Objective:** Successfully run Playwright E2E tests and publish their JUnit report to GitLab CI/CD.
+
+-----
+
+#### Step 1: Ensure Playwright is Configured to Generate a JUnit Report
+
+Your Playwright project needs to be set up to output a JUnit XML file after test execution.
+
+1.  **Locate `playwright.config.ts`:**
+    Navigate to your Playwright project's root directory and open the `playwright.config.ts` file.
+
+2.  **Add or Modify the `reporter` Property:**
+    Ensure the `reporter` array includes the `junit` reporter, specifying an `outputFile` where the XML report will be saved.
+
+    ```typescript
+    // playwright.config.ts
+    import { defineConfig } from '@playwright/test';
+
+    export default defineConfig({
+      // ... existing Playwright configuration ...
+
+      // Configure the test reporter(s)
+      reporter: [
+        ['list'], // Keep this for console output during local runs (optional)
+        ['junit', { outputFile: 'test-results/e2e-junit-report.xml' }], // <-- Add this line
+      ],
+
+      // Ensure your test results directory is configured if needed
+      // outputDir: './test-results/', // Playwright will create this if it doesn't exist
+
+      // ... rest of your Playwright configuration ...
+    });
+    ```
+
+      * **Explanation:** This tells Playwright to generate an XML file named `e2e-junit-report.xml` inside the `test-results/` directory every time `npx playwright test` is run.
+
+-----
+
+#### Step 2: Update Your `.gitlab-ci.yml` to Publish the Report
+
+Now, you need to tell GitLab where to find this generated JUnit report.
+
+1.  **Open `.gitlab-ci.yml`:**
+    Locate and open your project's `.gitlab-ci.yml` file.
+
+2.  **Locate Your E2E Test Job:**
+    Find the job responsible for running your E2E tests (e.g., `e2e_tests`).
+
+3.  **Add `artifacts:reports:junit`:**
+    Within this E2E test job, add the `artifacts:reports:junit` keyword under the `artifacts` section, pointing it to the path of the generated JUnit XML file.
+
+    ```yaml
+    # .gitlab-ci.yml
+
+    stages:
+      - build
+      - test
+      - e2e # Ensure you have an 'e2e' stage defined
+
+    # ... other jobs (build, unit_tests, etc.) ...
+
+    e2e_tests:
+      stage: e2e
+      # Ensure you are using a Playwright-compatible image that has Node.js/Python and browser dependencies
+      image: mcr.microsoft.com/playwright/node:lts-slim # Or a Python-based Playwright image if applicable
+      script:
+        - echo "Installing application dependencies..."
+        - npm install # Or `pip install -r requirements.txt` for Python projects
+
+        - echo "Starting the application in the background for E2E tests..."
+        # Command to start your application's web server in the background
+        - npm run start & # Example: `npm run start &` or `python app.py &`
+        - APP_PID=$! # Capture PID for potential later cleanup
+
+        - echo "Waiting for the application to be ready..."
+        # Add a delay or a robust health check loop to ensure your app is fully up
+        - sleep 15 # Adjust this time based on your application's startup speed
+
+        - echo "Running Playwright E2E tests..."
+        # Run your Playwright tests. No need to specify reporter here if configured in playwright.config.ts
+        - npx playwright test
+
+        # Optional: Gracefully stop the background application process
+        - kill $APP_PID || true
+
+      artifacts:
+        when: always # IMPORTANT: Always upload artifacts, even if the job fails.
+        paths:
+          - test-results/ # Include the entire directory containing screenshots, videos, and the XML
+        reports:
+          junit: test-results/e2e-junit-report.xml # <-- THIS IS THE CRITICAL LINE!
+        expire_in: 1 week # Good practice to clean up large artifacts after a period
+
+      rules:
+        # Define when this E2E job should run (e.g., on merge requests and main branch pushes)
+        - if: '$CI_COMMIT_BRANCH == "main"'
+          when: on_success
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+          when: on_success
+    ```
+
+      * **Explanation:**
+          * `artifacts:paths: - test-results/`: This ensures that the entire `test-results` folder (containing screenshots, videos, and the raw XML file) is uploaded as a downloadable artifact. This is invaluable for debugging.
+          * `artifacts:reports:junit: test-results/e2e-junit-report.xml`: This is the key instruction to GitLab. It tells GitLab to parse this specific XML file as a JUnit report and display its results in the UI.
+
+-----
+
+#### Step 3: Commit, Push, and Observe Your Pipeline
+
+1.  **Commit Your Changes:**
+    Save both `playwright.config.ts` and `.gitlab-ci.yml`. Commit these changes to a new feature branch.
+
+    ```bash
+    git add playwright.config.ts .gitlab-ci.yml
+    git commit -m "feat(ci): Configure E2E tests to publish JUnit report"
+    git push origin feature/e2e-junit-report
+    ```
+
+2.  **Create a Merge Request (Recommended):**
+    Open a Merge Request from your `feature/e2e-junit-report` branch to `main`.
+
+3.  **Observe the Pipeline and MR Widget:**
+
+      * **Pipeline View:** After the pipeline for your MR completes, navigate to the pipeline's detail page in GitLab. You should see a new **`Tests` tab** where you can browse the E2E test results in detail.
+      * **Merge Request Widget:** On the Merge Request overview page, look for the **"Test summary" widget**. It should now display a summary of your E2E test results, including the number of passed/failed tests and any new/fixed failures compared to the target branch.
+
+**Success Criteria:**
+
+  * Your E2E test job completes successfully.
+  * The `Tests` tab appears on your pipeline's detail page, showing your E2E test results.
+  * If you created a Merge Request, the "Test summary" widget on the MR page displays the E2E test results.
+  * If you introduce a failing E2E test, the pipeline should still complete (due to `when: always` for artifacts), but the test report in GitLab should clearly indicate the failure.
+
+By successfully completing these steps, you will have mastered a fundamental aspect of CI/CD reporting, providing your team with immediate, visual feedback on the quality of your `learn-gitlab-app`'s end-to-end functionality.
+
+-----
 
