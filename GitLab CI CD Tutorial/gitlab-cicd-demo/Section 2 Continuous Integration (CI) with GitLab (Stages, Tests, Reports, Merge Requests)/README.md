@@ -255,7 +255,7 @@ Your goal for this assignment is to extend our `.gitlab-ci.yml` file to include 
 
 **Here's how to approach it:**
 
-1.  **Introduce a new `test` stage:**
+1. **Introduce a new `test` stage:**
     * Modify the `stages` section in your `.gitlab-ci.yml` to include a `test` stage *after* the `build` stage. This ensures that tests only run if the build is successful.
 
     ```yaml
@@ -264,13 +264,13 @@ Your goal for this assignment is to extend our `.gitlab-ci.yml` file to include 
       - test # Add this stage
     ```
 
-2.  **Create a `test_job`:**
+2. **Create a `test_job`:**
     * Define a new job, let's call it `test_job`, and assign it to the `test` stage.
 
-3.  **Specify the Docker image:**
+3. **Specify the Docker image:**
     * Just like our `build_job`, the `test_job` will also need a `node:lts-alpine` (or similar Node.js image) as its execution environment. Remember, each job runs in a fresh container.
 
-4.  **Define the test script:**
+4. **Define the test script:**
     * The `script` section of your `test_job` should execute the command that runs your project's tests. For many Node.js projects, this is simply `npm test`.
 
     ```yaml
@@ -281,7 +281,7 @@ Your goal for this assignment is to extend our `.gitlab-ci.yml` file to include 
         - npm test
     ```
 
-5.  **Consider dependencies (Crucial for `test` stage):**
+5. **Consider dependencies (Crucial for `test` stage):**
     * Remember that each job starts in a clean environment. If your tests require `node_modules` (which they almost certainly will), you'll need to run `npm install` within the `test_job` *before* running `npm test`.
     * Alternatively, if your `build` job generates artifacts that include `node_modules` (though this is less common for frontend builds, it's good to be aware of artifact reuse), you could use the `needs` keyword to fetch artifacts from the `build` stage. For this assignment, a fresh `npm install` in the `test_job` is simpler and more typical.
 
@@ -297,17 +297,16 @@ Your goal for this assignment is to extend our `.gitlab-ci.yml` file to include 
       # You might also want to set coverage reports as artifacts, which we'll cover later
     ```
 
-6.  **Commit and Push:**
+6. **Commit and Push:**
     * Save your updated `.gitlab-ci.yml`, commit it, and push to your GitLab repository.
 
-7.  **Observe and Verify:**
+7. **Observe and Verify:**
     * Watch your pipeline run in GitLab. You should now see both a `build` stage and a `test` stage.
     * Ensure the `test_job` passes successfully. If it fails, examine the job logs for error messages, which will help you debug your tests or the CI configuration.
 
 By successfully adding this `test` stage, you're making a significant leap in building a robust CI pipeline that not only builds but also validates your application's integrity with every single change.
 
 ---
-
 
 Okay, let's craft a clear and direct section about running unit tests within the GitLab CI/CD pipeline.
 
@@ -327,10 +326,10 @@ For most JavaScript applications, unit tests are executed using a testing framew
 
 When our **`test_job`** runs in GitLab CI, the following steps are crucial:
 
-1.  **Environment Setup:** Just like our build job, the `test_job` starts with a clean Docker container based on our chosen Node.js image (e.g., `node:lts-alpine`). This ensures a consistent testing environment.
-2.  **Dependency Installation:** Before tests can run, their dependencies need to be installed. This is why the `npm install` command is critical at the beginning of our `test_job`'s `script` section.
-3.  **Test Execution:** After dependencies are in place, the `npm test` command is executed. Your testing framework then discovers and runs all defined unit tests.
-4.  **Reporting Results:** The output of these tests (whether they pass or fail) is streamed to the job logs in GitLab. A successful test run will allow the job to pass, while any failing tests will cause the job (and thus the pipeline stage) to fail, immediately alerting you to issues.
+1. **Environment Setup:** Just like our build job, the `test_job` starts with a clean Docker container based on our chosen Node.js image (e.g., `node:lts-alpine`). This ensures a consistent testing environment.
+2. **Dependency Installation:** Before tests can run, their dependencies need to be installed. This is why the `npm install` command is critical at the beginning of our `test_job`'s `script` section.
+3. **Test Execution:** After dependencies are in place, the `npm test` command is executed. Your testing framework then discovers and runs all defined unit tests.
+4. **Reporting Results:** The output of these tests (whether they pass or fail) is streamed to the job logs in GitLab. A successful test run will allow the job to pass, while any failing tests will cause the job (and thus the pipeline stage) to fail, immediately alerting you to issues.
 
 #### Example `test_job` Configuration
 
@@ -436,28 +435,28 @@ As we've been building our GitLab CI/CD pipeline, you might have noticed that jo
 
 If you don't explicitly define `stages:` in your `.gitlab-ci.yml`, or if you simply assign a job to a stage that doesn't exist, GitLab will use these default stages in the following order:
 
-1.  **`.pre` (Special Pre-Stage)**
+1. **`.pre` (Special Pre-Stage)**
     * This is a special, hidden stage that runs **before any other defined stages**.
     * It's primarily used for jobs that need to run very early in the pipeline, often for setup or validation that must occur before even the `build` stage begins.
     * You explicitly assign a job to this stage using `stage: .pre`.
     * **Example Use Case:** Code formatting checks that shouldn't block the build but should provide early feedback, environment setup jobs that prepare caches or dependencies.
 
-2.  **`build`**
+2. **`build`**
     * This is the standard stage for jobs that **compile, package, or otherwise prepare your application's source code**.
     * For our `learn-gitlab-app`, this is where `npm install` and `npm run build` happen, generating the deployable `build/` artifacts.
     * **Example Use Case:** Compiling source code (Java, C++), transpiling (TypeScript to JavaScript), bundling frontend assets (Webpack, Parcel), creating Docker images.
 
-3.  **`test`**
+3. **`test`**
     * The dedicated stage for **running automated tests** against your application.
     * As we've seen, this is where unit tests, integration tests, and potentially other automated quality checks reside.
     * **Example Use Case:** Executing unit tests, integration tests, static code analysis, security scans.
 
-4.  **`deploy`**
+4. **`deploy`**
     * This stage is reserved for jobs responsible for **deploying your application** to various environments.
     * You might have multiple deployment jobs within this stage, targeting different environments (e.g., `deploy_staging`, `deploy_production`).
     * **Example Use Case:** Deploying to development, staging, or production servers; pushing Docker images to a registry; updating Kubernetes manifests.
 
-5.  **`.post` (Special Post-Stage)**
+5. **`.post` (Special Post-Stage)**
     * Similar to `.pre`, this is a special, hidden stage that runs **after all other defined stages** have completed (regardless of their success or failure).
     * It's ideal for cleanup, notification, or reporting tasks that should always happen at the very end of a pipeline.
     * You explicitly assign a job to this stage using `stage: .post`.
@@ -495,7 +494,7 @@ Beyond simply running our unit tests, it's incredibly valuable to make the test 
 
 Most modern JavaScript testing frameworks (like Jest, Mocha, Vitest) have capabilities or reporters to output test results in the JUnit XML format.
 
-1.  **Configure Your Test Runner:**
+1. **Configure Your Test Runner:**
     * **Jest:** You'll typically use a reporter like `jest-junit`.
         First, install it: `npm install --save-dev jest-junit`
         Then, configure Jest in your `package.json` or `jest.config.js` to use this reporter and output to a specific XML file (e.g., `junit.xml`):
@@ -509,7 +508,7 @@ Most modern JavaScript testing frameworks (like Jest, Mocha, Vitest) have capabi
 
     * **Other frameworks:** Consult your testing framework's documentation for its specific JUnit reporter options.
 
-2.  **Update Your `.gitlab-ci.yml`:**
+2. **Update Your `.gitlab-ci.yml`:**
     * In your `test_job`, ensure your `script` command runs the tests to generate the JUnit XML file.
     * Crucially, use the `artifacts:reports:junit` keyword to tell GitLab where to find this XML file. GitLab will then parse this file after the job completes.
 
@@ -564,18 +563,18 @@ For this assignment, you'll intentionally introduce a simple change that *should
 
 **Here's how to do it:**
 
-1.  **Identify a Simple Unit Test:** Find a straightforward unit test in your `learn-gitlab-app` project. This could be a test for a basic function, a component's rendering, or a utility.
-2.  **Introduce a Deliberate "Bug":** Modify the actual application code that the test is designed to verify.
+1. **Identify a Simple Unit Test:** Find a straightforward unit test in your `learn-gitlab-app` project. This could be a test for a basic function, a component's rendering, or a utility.
+2. **Introduce a Deliberate "Bug":** Modify the actual application code that the test is designed to verify.
     * **Example (for a simple function):** If you have a function `add(a, b)` that returns `a + b`, temporarily change it to return `a - b`.
     * **Example (for a component):** If a component is expected to render a specific text string, temporarily change that text string.
     * **Crucially:** Make a change that *you know* your existing test should detect as incorrect.
-3.  **Commit and Push:** Save your changes to both the application code and your `.gitlab-ci.yml` (if you've been working on it). Commit and push these changes to your GitLab repository.
-4.  **Observe the Failing Pipeline:**
+3. **Commit and Push:** Save your changes to both the application code and your `.gitlab-ci.yml` (if you've been working on it). Commit and push these changes to your GitLab repository.
+4. **Observe the Failing Pipeline:**
     * Go to your project's "CI/CD > Pipelines" in GitLab.
     * You should now see a new pipeline run, and critically, the **`test` stage (and specifically your `test_job`) should fail.**
     * Click on the failed `test_job`. You'll see a red "Failed" status.
     * Navigate to the "Tests" tab on the job page. You should see the specific test that failed, along with its error message and stack trace. This is the valuable feedback loop in action!
-5.  **Revert and Verify Success:** Once you've observed the failure, **revert the deliberate "bug"** you introduced in your application code. Commit and push again. Your pipeline should now return to a passing state, confirming that your tests are functioning correctly.
+5. **Revert and Verify Success:** Once you've observed the failure, **revert the deliberate "bug"** you introduced in your application code. Commit and push again. Your pipeline should now return to a passing state, confirming that your tests are functioning correctly.
 
 By actively demonstrating a test failure, you're not just running tests; you're *validating your validation process*, which is a vital step in building truly reliable CI/CD pipelines.
 
@@ -600,19 +599,19 @@ A Merge Request, often called a Pull Request in other Git platforms, is the hear
 
 Here's a typical workflow that highlights how CI/CD pipelines facilitate safe and efficient change integration:
 
-1.  **Feature Branching:** A developer creates a new feature branch from the main branch (e.g., `git checkout -b my-new-feature main`).
-2.  **Development & Commits:** The developer works on the feature, making commits to their `my-new-feature` branch. Each push might trigger a basic CI pipeline for early feedback.
-3.  **Create a Merge Request:** Once the feature is complete (or ready for review), the developer creates a **Merge Request** in GitLab, proposing to merge `my-new-feature` into `main`.
-4.  **Automated Pipeline Execution:**
+1. **Feature Branching:** A developer creates a new feature branch from the main branch (e.g., `git checkout -b my-new-feature main`).
+2. **Development & Commits:** The developer works on the feature, making commits to their `my-new-feature` branch. Each push might trigger a basic CI pipeline for early feedback.
+3. **Create a Merge Request:** Once the feature is complete (or ready for review), the developer creates a **Merge Request** in GitLab, proposing to merge `my-new-feature` into `main`.
+4. **Automated Pipeline Execution:**
     * As soon as the MR is created, a **full CI/CD pipeline is triggered** on the source branch of the MR.
     * This pipeline runs all the stages we've configured: `build`, `test` (including unit tests and generating JUnit reports), and potentially more.
     * The status of this pipeline (passed or failed) is immediately visible in the MR widget.
-5.  **Code Review:** Team members review the code, providing feedback directly in the MR.
-6.  **Addressing Feedback & Rerunning Pipelines:** The developer addresses review comments. Each new commit to the feature branch within the MR automatically triggers a **new CI/CD pipeline run**, ensuring that feedback has been correctly implemented and no new regressions have been introduced.
-7.  **Approval & Merge:**
+5. **Code Review:** Team members review the code, providing feedback directly in the MR.
+6. **Addressing Feedback & Rerunning Pipelines:** The developer addresses review comments. Each new commit to the feature branch within the MR automatically triggers a **new CI/CD pipeline run**, ensuring that feedback has been correctly implemented and no new regressions have been introduced.
+7. **Approval & Merge:**
     * Once all discussions are resolved, code reviews are approved, and most importantly, **all CI/CD pipeline jobs have passed successfully**, the MR can be merged.
     * GitLab can be configured to **prevent merges** if the pipeline fails or if required approvals are missing.
-8.  **Post-Merge Actions:** After the merge, the target branch (e.g., `main`) can trigger its own CI/CD pipeline, often including deployment to staging or production environments.
+8. **Post-Merge Actions:** After the merge, the target branch (e.g., `main`) can trigger its own CI/CD pipeline, often including deployment to staging or production environments.
 
 By using Merge Requests in conjunction with our robust GitLab CI/CD pipelines, we establish a powerful safety net that ensures only thoroughly vetted, built, and tested code makes it into our main codebase, significantly reducing the risk of introducing bugs and fostering high-quality software delivery.
 
@@ -638,11 +637,11 @@ Here's why MRs are central to integrating changes effectively:
 
 **The Workflow in Action:**
 
-1.  **Develop on a Feature Branch:** You work on your changes in an isolated branch.
-2.  **Create a Merge Request:** When ready, you open an MR proposing to merge your feature branch into the target branch (e.g., `main`).
-3.  **CI/CD Pipeline Runs:** GitLab automatically runs your defined pipeline against your MR's code, providing instant feedback on its health.
-4.  **Review and Iterate:** Team members review your code. As you address feedback and push new commits, the CI/CD pipeline reruns to re-validate the changes.
-5.  **Approve and Merge:** Once reviews are complete and, crucially, **all CI/CD checks pass**, the MR can be approved and merged. This final step integrates your tested and validated code into the shared codebase.
+1. **Develop on a Feature Branch:** You work on your changes in an isolated branch.
+2. **Create a Merge Request:** When ready, you open an MR proposing to merge your feature branch into the target branch (e.g., `main`).
+3. **CI/CD Pipeline Runs:** GitLab automatically runs your defined pipeline against your MR's code, providing instant feedback on its health.
+4. **Review and Iterate:** Team members review your code. As you address feedback and push new commits, the CI/CD pipeline reruns to re-validate the changes.
+5. **Approve and Merge:** Once reviews are complete and, crucially, **all CI/CD checks pass**, the MR can be approved and merged. This final step integrates your tested and validated code into the shared codebase.
 
 By making Merge Requests the standard for integrating changes, we ensure that every piece of code merged into our project has passed through a robust gauntlet of automated checks and human review, significantly enhancing overall code quality and stability.
 
@@ -663,14 +662,13 @@ Bringing new code changes into our main codebase is a critical step in developme
 
 #### The Integration Workflow in Action
 
-1.  **Develop on a Feature Branch:** You work on your changes in an isolated branch.
-2.  **Create a Merge Request:** When ready, you open an MR proposing to merge your feature branch into the target branch (e.g., `main`).
-3.  **CI/CD Pipeline Runs:** GitLab automatically runs your defined pipeline against your MR's code, providing instant feedback on its health.
-4.  **Review and Iterate:** Team members review your code. As you address feedback and push new commits, the CI/CD pipeline reruns to re-validate the changes.
-5.  **Approve and Merge:** Once reviews are complete and, crucially, **all CI/CD checks pass**, the MR can be approved and merged. This final step integrates your tested and validated code into the shared codebase.
+1. **Develop on a Feature Branch:** You work on your changes in an isolated branch.
+2. **Create a Merge Request:** When ready, you open an MR proposing to merge your feature branch into the target branch (e.g., `main`).
+3. **CI/CD Pipeline Runs:** GitLab automatically runs your defined pipeline against your MR's code, providing instant feedback on its health.
+4. **Review and Iterate:** Team members review your code. As you address feedback and push new commits, the CI/CD pipeline reruns to re-validate the changes.
+5. **Approve and Merge:** Once reviews are complete and, crucially, **all CI/CD checks pass**, the MR can be approved and merged. This final step integrates your tested and validated code into the shared codebase.
 
 By making Merge Requests the standard for integrating changes, we ensure that every piece of code merged into our project has passed through a robust gauntlet of automated checks and human review, significantly enhancing overall code quality and stability.
-
 
 ---
 
@@ -684,24 +682,24 @@ GitLab provides a suite of settings for Merge Requests that allow you to customi
 
 You can typically find these settings under **Project settings > General > Merge requests** in your GitLab project.
 
-1.  **Merge Method:**
+1. **Merge Method:**
     * **Merge commit:** This is the default. It creates a new merge commit when changes are merged. This keeps a clear history of when a feature branch was merged.
     * **Fast-forward merge:** This method incorporates changes by moving the branch pointer forward without creating an extra merge commit. It results in a linear history but only works if there are no diverging changes on the target branch.
     * **Semi-linear merge (squash commit):** This option squashes all commits from the feature branch into a single commit upon merging, creating a clean, concise history while still recording the merge. This is often preferred for maintaining a tidy `main` branch history.
 
-2.  **Squash commits when merging:**
+2. **Squash commits when merging:**
     * This setting allows or requires users to squash all commits from the source branch into a single commit when merging. This is extremely useful for keeping your Git history clean and readable, especially if a feature branch has many small, iterative commits.
 
-3.  **Merge Request Approvals:**
+3. **Merge Request Approvals:**
     * This is one of the most critical quality gates. You can define **approval rules** that require a certain number of approvals from specific users or groups (e.g., code owners, senior developers) before an MR can be merged.
     * You can set different rules for different branches and even require new approvals if changes are pushed after an approval has been given.
 
-4.  **Checks and Integrations (Status Checks):**
+4. **Checks and Integrations (Status Checks):**
     * **Pipelines must succeed:** This is perhaps the most fundamental CI/CD quality gate. You can configure the MR to **prevent merging** if the associated CI/CD pipeline fails. This ensures that no code with broken builds or failing tests can be integrated.
     * **Resolved discussions:** You can enforce that all discussions on the MR must be resolved before merging.
     * **All threads resolved:** Ensures that all comments are addressed.
 
-5.  **Target Branch Protection (via Branch Protection Rules):**
+5. **Target Branch Protection (via Branch Protection Rules):**
     * While not directly an MR setting, **branch protection rules** (found under **Project settings > Repository > Protected branches**) heavily influence MR behavior.
     * You can protect branches like `main` or `production` to:
         * Prevent direct pushes to them.
@@ -721,7 +719,6 @@ Configuring your Merge Requests correctly strengthens your development workflow 
 
 By diligently setting up these configurations, you empower your team to maintain high code quality and deliver software with greater confidence and efficiency.
 
-
 ---
 
 ### Making Changes Through a Merge Request: The Standard Workflow
@@ -732,35 +729,40 @@ This is the recommended approach for any new feature, bug fix, or significant re
 
 #### The Step-by-Step Merge Request Workflow
 
-1.  **Branch Out for Your Changes:**
+1. **Branch Out for Your Changes:**
     * **Goal:** Work on your changes in isolation to avoid disrupting the main codebase.
     * **Action:** From your local repository, create a new feature branch based on the latest version of your target branch (e.g., `main`).
+
         ```bash
         git checkout main            # Ensure you're on the main branch
         git pull origin main         # Get the latest changes
         git checkout -b feature/my-new-feature # Create and switch to your new branch
         ```
+
     * **Best Practice:** Use descriptive branch names (e.g., `feature/add-user-auth`, `bugfix/fix-login-error`).
 
-2.  **Develop and Commit Your Changes:**
+2. **Develop and Commit Your Changes:**
     * **Goal:** Implement your feature or fix, making incremental, logical commits.
     * **Action:** Make your code modifications to `learn-gitlab-app`. As you progress, commit your changes frequently with clear, concise commit messages.
+
         ```bash
         # Make your code changes
         git add .
         git commit -m "feat: implement user login functionality"
         # Continue working and committing as needed
         ```
+
     * **CI/CD Trigger:** Each `git push` to your feature branch will likely trigger a pipeline in GitLab, giving you early feedback on your changes.
 
-3.  **Push Your Feature Branch to GitLab:**
+3. **Push Your Feature Branch to GitLab:**
     * **Goal:** Make your changes available on GitLab for review and to trigger the full CI/CD pipeline.
     * **Action:** Push your local feature branch to your forked GitLab repository.
+
         ```bash
         git push origin feature/my-new-feature
         ```
 
-4.  **Create a New Merge Request:**
+4. **Create a New Merge Request:**
     * **Goal:** Initiate the review and integration process.
     * **Action:**
         * After pushing, GitLab will often provide a direct link in the terminal to "Create merge request." Click this link.
@@ -774,7 +776,7 @@ This is the recommended approach for any new feature, bug fix, or significant re
             * **Labels, Milestones, etc.:** Add relevant metadata.
     * **CI/CD Trigger:** Creating the MR will immediately trigger a new, full CI/CD pipeline run specifically for this Merge Request.
 
-5.  **Monitor the Pipeline and Address Feedback:**
+5. **Monitor the Pipeline and Address Feedback:**
     * **Goal:** Ensure your changes pass all automated checks and incorporate human review.
     * **Action:**
         * **Check the MR widget:** The MR overview page will display the status of the associated CI/CD pipeline. Wait for all jobs (build, test, etc.) to complete successfully.
@@ -782,7 +784,7 @@ This is the recommended approach for any new feature, bug fix, or significant re
         * **Push updates:** Each time you push new commits to your feature branch (after addressing feedback), a new pipeline will automatically run on the MR.
         * **View Test Reports:** Use the "Tests" tab in the MR to quickly see if your unit tests passed.
 
-6.  **Get Approvals and Merge:**
+6. **Get Approvals and Merge:**
     * **Goal:** Integrate your validated changes into the main branch.
     * **Action:**
         * Ensure all CI/CD pipelines associated with the latest commit on the MR have passed.
@@ -817,15 +819,16 @@ Code review is a collaborative process where team members examine each other's c
 
 When you open a Merge Request, GitLab provides a rich interface for review:
 
-1.  **Overview Tab:** See the MR's title, description, and the current pipeline status.
-2.  **Changes Tab:** This is the core of the review. You can view a side-by-side diff of the changes, line by line.
+1. **Overview Tab:** See the MR's title, description, and the current pipeline status.
+2. **Changes Tab:** This is the core of the review. You can view a side-by-side diff of the changes, line by line.
     * **Commenting:** Click on any line of code to leave a comment, suggest a change, or start a discussion thread.
     * **Suggestions:** GitLab allows you to propose specific code changes directly within a comment, which the author can then apply with a single click.
-3.  **Commits Tab:** Review individual commits within the MR.
-4.  **Pipelines Tab:** Get a detailed view of the CI/CD pipeline runs associated with the MR, including all job logs and test reports.
-5.  **Discussions:** Track all active and resolved comment threads.
+3. **Commits Tab:** Review individual commits within the MR.
+4. **Pipelines Tab:** Get a detailed view of the CI/CD pipeline runs associated with the MR, including all job logs and test reports.
+5. **Discussions:** Track all active and resolved comment threads.
 
 Reviewers typically check for:
+
 * Does the code meet the requirements?
 * Is it clear, readable, and well-commented?
 * Does it follow project coding standards?
@@ -839,9 +842,9 @@ Once the code review is complete, all discussions are resolved, and most importa
 
 **Prerequisites for Merging (as configured in GitLab):**
 
-1.  **Successful Pipeline:** The CI/CD pipeline associated with the latest commit on the MR *must* be green. This is your primary automated quality gate.
-2.  **Required Approvals:** The MR must have received the necessary number of approvals from designated team members (as defined in your project's approval rules).
-3.  **Resolved Discussions:** All discussion threads on the MR should be resolved.
+1. **Successful Pipeline:** The CI/CD pipeline associated with the latest commit on the MR *must* be green. This is your primary automated quality gate.
+2. **Required Approvals:** The MR must have received the necessary number of approvals from designated team members (as defined in your project's approval rules).
+3. **Resolved Discussions:** All discussion threads on the MR should be resolved.
 
 **Merging in GitLab:**
 
@@ -881,7 +884,7 @@ Integrating a linter into your GitLab CI/CD pipeline ensures that every code cha
 
 For JavaScript and Node.js projects like `learn-gitlab-app`, **ESLint** is the industry-standard linter. It's highly configurable and supports various style guides (e.g., Airbnb, Standard, Google) and plugins.
 
-1.  **Installation:**
+1. **Installation:**
     First, you'll need to install ESLint and any desired plugins or configurations as development dependencies in your project:
 
     ```bash
@@ -890,7 +893,7 @@ For JavaScript and Node.js projects like `learn-gitlab-app`, **ESLint** is the i
     # npm install --save-dev eslint-config-airbnb-base eslint-plugin-import eslint
     ```
 
-2.  **Configuration (`.eslintrc.js` or `.eslintrc.json`):**
+2. **Configuration (`.eslintrc.js` or `.eslintrc.json`):**
     You'll create a configuration file (e.g., `.eslintrc.js` in the project root) to define your rules, environment, and extends from popular style guides.
 
     ```javascript
@@ -919,7 +922,7 @@ For JavaScript and Node.js projects like `learn-gitlab-app`, **ESLint** is the i
     };
     ```
 
-3.  **Add a Lint Script to `package.json`:**
+3. **Add a Lint Script to `package.json`:**
     Include a script in your `package.json` to easily run the linter from the command line:
 
     ```json
@@ -973,21 +976,21 @@ Think of stages as milestones in your delivery process. GitLab provides default 
 
 Here's a breakdown of commonly used stages, designed to create a comprehensive CI/CD pipeline:
 
-1.  **`.pre` Stage (Pre-Processing & Early Feedback)**
+1. **`.pre` Stage (Pre-Processing & Early Feedback)**
     * **Purpose:** To run very fast, critical checks that provide immediate feedback and can fail quickly without consuming too many resources. These jobs run before any other defined stages.
     * **Example Jobs:**
         * **`lint_job`**: Runs code linters (like ESLint for JavaScript) to enforce coding standards and catch stylistic errors.
         * **`security_scan_static`**: Performs quick static application security testing (SAST) on the code.
         * **`format_check`**: Checks code formatting (e.g., Prettier).
 
-2.  **`build` Stage (Preparation & Compilation)**
+2. **`build` Stage (Preparation & Compilation)**
     * **Purpose:** To compile source code, resolve dependencies, and package the application for subsequent stages. This stage typically produces the artifacts that will be tested and deployed.
     * **Example Jobs:**
         * **`frontend_build`**: Installs Node.js dependencies (`npm install`) and builds frontend assets (`npm run build`).
         * **`backend_compile`**: Compiles backend code (e.g., Java, Go).
         * **`docker_build`**: Builds the application's Docker image.
 
-3.  **`test` Stage (Automated Verification)**
+3. **`test` Stage (Automated Verification)**
     * **Purpose:** To run various types of automated tests to ensure the application functions correctly and doesn't introduce regressions. This stage usually runs after the `build` stage to test the built artifacts.
     * **Example Jobs:**
         * **`unit_tests`**: Runs fast unit tests (as we've seen with `npm test`).
@@ -996,18 +999,18 @@ Here's a breakdown of commonly used stages, designed to create a comprehensive C
         * **`api_tests`**: Tests your application's API endpoints.
         * **`vulnerability_scan`**: More in-depth security scanning (e.g., dependency scanning).
 
-4.  **`review` Stage (Optional: Dynamic Review Environments)**
+4. **`review` Stage (Optional: Dynamic Review Environments)**
     * **Purpose:** For more complex applications, this stage can automatically deploy the built application to a temporary "review environment" for manual testing, stakeholder review, or dynamic analysis.
     * **Example Jobs:**
         * **`deploy_review`**: Deploys the current MR's changes to a unique, temporary URL.
 
-5.  **`deploy` Stage (Deployment to Environments)**
+5. **`deploy` Stage (Deployment to Environments)**
     * **Purpose:** To deploy the validated application to various environments (staging, production). This stage often includes multiple jobs, each targeting a specific environment.
     * **Example Jobs:**
         * **`deploy_staging`**: Deploys the application to a staging environment for final QA.
         * **`deploy_production`**: Deploys to the production environment (often manually triggered or time-gated).
 
-6.  **`.post` Stage (Post-Processing & Cleanup)**
+6. **`.post` Stage (Post-Processing & Cleanup)**
     * **Purpose:** To run jobs that should always execute at the end of the pipeline, regardless of whether previous stages succeeded or failed.
     * **Example Jobs:**
         * **`send_notification`**: Sends alerts (e.g., Slack, email) about pipeline status.
@@ -1076,12 +1079,12 @@ This isn't about removing essential checks, but rather about optimizing how and 
 
 Here are key strategies to streamline your GitLab CI/CD pipeline:
 
-1.  **Optimize Your Stages and Jobs:**
+1. **Optimize Your Stages and Jobs:**
     * **Consolidate Related Jobs:** If multiple jobs in the same stage perform very similar actions or have very small differences, consider combining them.
     * **Review Job Necessity:** Regularly evaluate if every job in your pipeline is still necessary. Are there redundant checks? Is a particular job adding significant value for its execution time?
     * **Leverage Parallelism Effectively:** Ensure truly independent jobs within a stage are running in parallel. If a job is blocking others unnecessarily, re-evaluate its dependencies.
 
-2.  **Smart Caching of Dependencies:**
+2. **Smart Caching of Dependencies:**
     * **Cache `node_modules`:** For Node.js projects like `learn-gitlab-app`, reinstalling `node_modules` in every job (e.g., `build_job`, `test_job`, `lint_job`) is a major time sink.
     * **Action:** Configure **caching** for your `node_modules` directory in your `.gitlab-ci.yml`. This tells GitLab to save the `node_modules` directory after the first job and reuse it in subsequent jobs, dramatically speeding up `npm install`.
 
@@ -1116,13 +1119,14 @@ Here are key strategies to streamline your GitLab CI/CD pipeline:
           - node_modules/
         policy: pull # Only download cache
     ```
+
     * **Note:** Use `policy: pull-push` on the *first* job that generates the cache (e.g., your initial `npm install` job) and `policy: pull` on subsequent jobs that just need to consume it.
 
-3.  **Optimize Docker Images:**
+3. **Optimize Docker Images:**
     * **Use Lightweight Base Images:** As discussed earlier, using Alpine or `slim` images (e.g., `node:lts-alpine`) keeps your image size minimal, leading to faster pulls and reduced storage.
     * **Multi-Stage Builds:** For more complex applications (e.g., compiled languages), use Docker multi-stage builds to create very lean final images that only contain the runtime essentials, not the build tools.
 
-4.  **Leverage `rules` for Conditional Job Execution:**
+4. **Leverage `rules` for Conditional Job Execution:**
     * **Run Jobs Only When Necessary:** Not every job needs to run on every pipeline. Use `rules` (or `only/except` for older configurations) to define precise conditions for when a job should execute.
     * **Examples:**
         * Run deployment to production `only:on_tag` or `rules:if: $CI_COMMIT_TAG` (manual trigger).
@@ -1140,7 +1144,7 @@ Here are key strategies to streamline your GitLab CI/CD pipeline:
           allow_failure: false
     ```
 
-5.  **Artifact Optimization:**
+5. **Artifact Optimization:**
     * **Only Save What's Needed:** Don't save unnecessary files as artifacts. Large artifacts increase upload/download times and consume more storage.
     * **Set Expiry:** Use `expire_in` for artifacts to automatically clean up old ones.
 
@@ -1234,20 +1238,20 @@ deploy_to_production:
 * **`image: alpine/git`**: A simple base image. You'd replace this with an image that has your deployment tools (e.g., `docker`, `kubectl`, `aws-cli`, or a custom image with your SSH client).
 * **`script:`**: Contains the actual commands to perform the deployment. These would typically be shell scripts, Docker commands, or Kubernetes commands that push your built application or container image to the production servers.
 * **`environment:`**:
-    * `name: production`: This links the job to GitLab's **Environments** feature, providing a dedicated page to track deployments, view history, and access live URLs.
-    * `url: https://your-production-app.com`: (Optional) Provides a direct link to your live application from the GitLab environment page.
+  * `name: production`: This links the job to GitLab's **Environments** feature, providing a dedicated page to track deployments, view history, and access live URLs.
+  * `url: https://your-production-app.com`: (Optional) Provides a direct link to your live application from the GitLab environment page.
 * **`rules:`**: This is crucial for controlling job execution.
-    * `if: '$CI_COMMIT_BRANCH == "main"'`: Ensures this deployment job only appears in pipelines triggered by commits to the `main` branch.
-    * `when: manual`: **This is the key!** It makes the job wait for a user to explicitly click the "play" button in the GitLab UI.
+  * `if: '$CI_COMMIT_BRANCH == "main"'`: Ensures this deployment job only appears in pipelines triggered by commits to the `main` branch.
+  * `when: manual`: **This is the key!** It makes the job wait for a user to explicitly click the "play" button in the GitLab UI.
 
 #### The Manual Deployment Experience in GitLab
 
 When a pipeline with a manual job runs:
 
-1.  The pipeline will pause at the stage containing the manual job.
-2.  On the pipeline graph and the job page, the `deploy_to_production` job will appear with a **"play" icon** next to it.
-3.  A user with sufficient permissions can click this icon to trigger the job.
-4.  Once triggered, the job will execute its scripts, and its status will be reflected in the pipeline.
+1. The pipeline will pause at the stage containing the manual job.
+2. On the pipeline graph and the job page, the `deploy_to_production` job will appear with a **"play" icon** next to it.
+3. A user with sufficient permissions can click this icon to trigger the job.
+4. Once triggered, the job will execute its scripts, and its status will be reflected in the pipeline.
 
 By strategically using manual deployment jobs, you strike a balance between automation efficiency and the human control necessary for managing critical releases with confidence.
 
@@ -1272,7 +1276,7 @@ Integrating these CLI tools into your pipeline means ensuring they are present a
 
 There are two primary strategies for ensuring your CLI tools are available in your CI/CD jobs:
 
-1.  **Using a Pre-built Docker Image (Recommended for Simplicity):**
+1. **Using a Pre-built Docker Image (Recommended for Simplicity):**
     The simplest and often most efficient method is to select a Docker image that already has the necessary CLI tools pre-installed. Many official and community-maintained images are designed for CI/CD purposes.
 
     * **Examples:**
@@ -1281,6 +1285,7 @@ There are two primary strategies for ensuring your CLI tools are available in yo
         * If your build already uses a specific language image (like `node:lts-alpine`), you might need to install additional tools on top of it within your job.
 
     * **In your `.gitlab-ci.yml`:**
+
         ```yaml
         # For a job that needs kubectl
         deploy_kubernetes_job:
@@ -1291,7 +1296,7 @@ There are two primary strategies for ensuring your CLI tools are available in yo
             - kubectl apply -f kubernetes/deployment.yaml
         ```
 
-2.  **Installing Tools Within Your Job Script (For Customization or Leaner Base Images):**
+2. **Installing Tools Within Your Job Script (For Customization or Leaner Base Images):**
     If a suitable pre-built image isn't available, or if you're starting from a very lightweight base image (like `alpine` or `node:lts-alpine`) and only need a few specific tools, you can install them directly within your job's `script` section.
 
     * **Considerations:**
@@ -1300,6 +1305,7 @@ There are two primary strategies for ensuring your CLI tools are available in yo
         * **Time Cost:** Installing tools on the fly adds time to your pipeline execution.
 
     * **In your `.gitlab-ci.yml` (Example: Installing `curl` and `jq` on Alpine):**
+
         ```yaml
         my_api_check_job:
           stage: test
@@ -1310,7 +1316,9 @@ There are two primary strategies for ensuring your CLI tools are available in yo
             - curl -s "https://api.example.com/status" | jq .
             - echo "API check complete."
         ```
+
     * **For `aws-cli` on an `ubuntu` base:**
+
         ```yaml
         deploy_s3_job:
           stage: deploy
@@ -1355,9 +1363,9 @@ For automated deployments from GitLab CI/CD, **it is generally NOT recommended t
 
 * **Native GitLab Integration:** Netlify provides excellent, native integration with GitLab. When you link your GitLab repository to a Netlify site (usually done once through the Netlify UI), Netlify automatically configures a webhook.
 * **Automatic Builds & Deployments:** Every time you push code to your linked GitLab repository (especially to your production branch, e.g., `main`), GitLab triggers its own CI/CD pipeline. However, Netlify's webhook also kicks in. Netlify then:
-    1.  Pulls the latest code from your GitLab repository itself.
-    2.  Builds the project (using the build commands configured in Netlify, e.g., `npm run build`).
-    3.  Deploys the built site.
+    1. Pulls the latest code from your GitLab repository itself.
+    2. Builds the project (using the build commands configured in Netlify, e.g., `npm run build`).
+    3. Deploys the built site.
 * **Reduced Complexity:** This native integration significantly simplifies your `.gitlab-ci.yml` for Netlify deployments. You don't need `netlify-cli` installed in your GitLab Runner's Docker image, nor do you need to manage Netlify authentication tokens within your GitLab CI variables for deployment.
 * **Netlify's Optimized Build Environment:** Netlify's own build environment is highly optimized for web projects, often providing faster build times and specific integrations that might be more challenging to replicate perfectly in a generic GitLab Runner.
 
@@ -1431,23 +1439,26 @@ This is where **environment variables** become indispensable. Storing sensitive 
 
 #### Why Use Environment Variables?
 
-1.  **Security:** This is paramount. Environment variables keep sensitive data out of your version control system (Git), preventing accidental exposure in public repositories or historical commits.
-2.  **Flexibility:** Easily change configurations without modifying and redeploying code. You can use different values for development, staging, and production environments.
-3.  **Consistency:** Ensures that your application behaves correctly across different environments, as each environment provides its specific set of configurations.
-4.  **Simplicity:** Most programming languages and frameworks have built-in support for reading environment variables, making integration straightforward.
+1. **Security:** This is paramount. Environment variables keep sensitive data out of your version control system (Git), preventing accidental exposure in public repositories or historical commits.
+2. **Flexibility:** Easily change configurations without modifying and redeploying code. You can use different values for development, staging, and production environments.
+3. **Consistency:** Ensures that your application behaves correctly across different environments, as each environment provides its specific set of configurations.
+4. **Simplicity:** Most programming languages and frameworks have built-in support for reading environment variables, making integration straightforward.
 
 #### How to Use Environment Variables in Your Project
 
 For a Node.js application like `learn-gitlab-app`, you'll typically use a library like `dotenv` for local development, and rely on the execution environment (like GitLab CI/CD or your hosting provider) to provide variables in production.
 
-1.  **Local Development (`.env` file):**
+1. **Local Development (`.env` file):**
     * Create a `.env` file in your project's root (and **add it to your `.gitignore`!**).
     * Store your local development variables there:
+
         ```
         API_KEY=your_local_dev_api_key_123
         DATABASE_URL=mongodb://localhost:27017/dev_db
         ```
+
     * Use `dotenv` in your Node.js application to load these variables:
+
         ```javascript
         // In your main application file (e.g., app.js or index.js)
         require('dotenv').config();
@@ -1458,7 +1469,7 @@ For a Node.js application like `learn-gitlab-app`, you'll typically use a librar
         console.log(`Using API Key: ${apiKey}`);
         ```
 
-2.  **Accessing Variables in Your Application Code:**
+2. **Accessing Variables in Your Application Code:**
     * In Node.js, environment variables are accessed via `process.env.<VARIABLE_NAME>`.
     * For frontend JavaScript code that needs environment variables at build time, you'll typically use a build tool (like Webpack or Vite) to inject them, often prefixed (e.g., `REACT_APP_` for Create React App).
 
@@ -1466,7 +1477,7 @@ For a Node.js application like `learn-gitlab-app`, you'll typically use a librar
 
 GitLab CI/CD provides a secure and centralized way to manage environment variables for your pipelines. These variables are automatically injected into the environment of your jobs when they run.
 
-1.  **Project-Level CI/CD Variables:**
+1. **Project-Level CI/CD Variables:**
     * **Location:** Navigate to your GitLab project > **Settings > CI/CD > Variables**.
     * **Adding Variables:**
         * Click "Add variable."
@@ -1477,7 +1488,7 @@ GitLab CI/CD provides a secure and centralized way to manage environment variabl
         * **Protect variable (Recommended for secrets):** If checked, the variable's value will only be exposed to protected branches or tags and won't appear in job logs.
         * **Mask variable (Recommended for secrets):** If checked, the variable's value will be masked in job logs if its length is at least 8 characters.
 
-2.  **Using Variables in `.gitlab-ci.yml`:**
+2. **Using Variables in `.gitlab-ci.yml`:**
     Once defined in GitLab, these variables are automatically available in your job scripts.
 
     ```yaml
@@ -1499,6 +1510,7 @@ GitLab CI/CD provides a secure and centralized way to manage environment variabl
       environment:
         name: production
     ```
+
     * **Note:** In shell scripts, you access environment variables with a `$` prefix (e.g., `$API_KEY`). In your Node.js code, it's `process.env.API_KEY`.
 
 #### Best Practices for Managing Environment Variables
@@ -1530,7 +1542,7 @@ This is where **environment variables** become indispensable. Storing sensitive 
 
 For a Node.js application like `learn-gitlab-app`, you'll typically use a library like `dotenv` for local development, and rely on the execution environment (like GitLab CI/CD or your hosting provider) to provide variables in production.
 
-1.  **Local Development (`.env` file):**
+1. **Local Development (`.env` file):**
     * Create a `.env` file in your project's root. **Crucially, add it to your `.gitignore`!** This prevents sensitive data from being accidentally committed.
     * Store your local development variables there:
 
@@ -1538,6 +1550,7 @@ For a Node.js application like `learn-gitlab-app`, you'll typically use a librar
         API_KEY=your_local_dev_api_key_123
         DATABASE_URL=mongodb://localhost:27017/dev_db
         ```
+
     * In your Node.js application, use `dotenv` (install with `npm install dotenv`) to load these variables:
 
         ```javascript
@@ -1550,7 +1563,7 @@ For a Node.js application like `learn-gitlab-app`, you'll typically use a librar
         console.log(`Using API Key: ${apiKey}`);
         ```
 
-2.  **Accessing Variables in Your Application Code:**
+2. **Accessing Variables in Your Application Code:**
     * In Node.js, environment variables are accessed via `process.env.<VARIABLE_NAME>`.
     * For frontend JavaScript code that needs environment variables at build time, you'll typically use a build tool (like Webpack or Vite) to inject them, often prefixed (e.g., `REACT_APP_` for Create React App).
 
@@ -1558,7 +1571,7 @@ For a Node.js application like `learn-gitlab-app`, you'll typically use a librar
 
 GitLab CI/CD provides a secure and centralized way to manage environment variables for your pipelines. These variables are automatically injected into the environment of your jobs when they run.
 
-1.  **Project-Level CI/CD Variables:**
+1. **Project-Level CI/CD Variables:**
     * **Location:** Navigate to your GitLab project > **Settings > CI/CD > Variables**.
     * **Adding Variables:** Click "Add variable."
         * **Key:** The exact name of your environment variable (e.g., `API_KEY`, `DATABASE_URL`).
@@ -1568,7 +1581,7 @@ GitLab CI/CD provides a secure and centralized way to manage environment variabl
         * **Protect variable (Recommended for secrets):** If checked, the variable's value will only be exposed to protected branches or tags and won't appear in job logs.
         * **Mask variable (Recommended for secrets):** If checked, the variable's value will be masked in job logs if its length is at least 8 characters.
 
-2.  **Using Variables in `.gitlab-ci.yml`:**
+2. **Using Variables in `.gitlab-ci.yml`:**
     Once defined in GitLab, these variables are automatically available in your job scripts.
 
     ```yaml
@@ -1590,6 +1603,7 @@ GitLab CI/CD provides a secure and centralized way to manage environment variabl
       environment:
         name: production # Links to GitLab's Environments feature
     ```
+
     * **Note:** In shell scripts, you access environment variables with a `$` prefix (e.g., `$API_KEY`). In your Node.js application code, it's `process.env.API_KEY`.
 
 #### Best Practices for Managing Environment Variables
@@ -1623,7 +1637,7 @@ While we touched upon **environment variables** as a way to handle configuration
 
 When working with GitLab CI/CD, there are several effective strategies for managing your secrets:
 
-1.  **GitLab CI/CD Variables (Our Primary Focus):**
+1. **GitLab CI/CD Variables (Our Primary Focus):**
     This is the most straightforward and often sufficient method for many projects. As we discussed, GitLab's built-in CI/CD variables (found under **Project settings > CI/CD > Variables**) are a secure way to store secrets.
 
     * **How it Works:** You define variables with a **key** (the name of your secret) and a **value** (the secret itself).
@@ -1645,7 +1659,7 @@ When working with GitLab CI/CD, there are several effective strategies for manag
           when: manual
     ```
 
-2.  **External Secret Management Tools (For Advanced Needs):**
+2. **External Secret Management Tools (For Advanced Needs):**
     For larger organizations, highly sensitive applications, or projects requiring dynamic secrets and sophisticated access control, integrating with dedicated secret management tools is the way to go.
 
     * **Examples:**
@@ -1659,7 +1673,7 @@ When working with GitLab CI/CD, there are several effective strategies for manag
     * **How it Works in CI/CD:** Your GitLab CI/CD job would typically authenticate with the external secret manager (using a limited-privilege token or role) and then retrieve the necessary secrets at runtime. This adds a layer of complexity but provides enhanced security features.
     * **When to Use:** When you need advanced features like secret rotation, fine-grained access control, auditing beyond GitLab's scope, or ephemeral credentials.
 
-3.  **Encrypted Files (Less Common, but an Option):**
+3. **Encrypted Files (Less Common, but an Option):**
     While generally discouraged for active secrets due to the challenge of secure key management, you could theoretically encrypt sensitive files (e.g., a `.env` file for testing) and decrypt them during the CI/CD job using a decryption key stored as a GitLab CI/CD variable. This is often more complex than direct variable injection and carries more risk.
 
 #### Best Practices for Secret Management
@@ -1699,7 +1713,7 @@ While we've touched on **environment variables** for configuration, managing *se
 
 When working with GitLab CI/CD, there are several effective strategies for managing your secrets:
 
-1.  **GitLab CI/CD Variables (Our Primary Focus):**
+1. **GitLab CI/CD Variables (Our Primary Focus):**
     This is the most straightforward and often sufficient method for many projects. GitLab's built-in CI/CD variables (found under **Project settings > CI/CD > Variables**) are a secure way to store secrets.
 
     * **How it Works:** You define variables with a **key** (the secret's name) and a **value** (the secret itself).
@@ -1721,7 +1735,7 @@ When working with GitLab CI/CD, there are several effective strategies for manag
           when: manual
     ```
 
-2.  **External Secret Management Tools (For Advanced Needs):**
+2. **External Secret Management Tools (For Advanced Needs):**
     For larger organizations, highly sensitive applications, or projects requiring dynamic secrets and sophisticated access control, integrating with dedicated secret management tools is the way to go.
 
     * **Examples:**
@@ -1746,7 +1760,6 @@ When working with GitLab CI/CD, there are several effective strategies for manag
 
 By diligently managing your secrets, you significantly harden your application's security posture and protect your valuable data from unauthorized access, making your CI/CD pipeline not just efficient, but also secure.
 
-
 ---
 
 ### Deploying to Production: The Ultimate Goal of CI/CD
@@ -1757,21 +1770,21 @@ While we've discussed manual deployment as a checkpoint, the true power of CI/CD
 
 #### Key Principles for Production Deployments
 
-1.  **Automation is King:** Automate every step of the deployment process to eliminate human error, ensure consistency, and speed up releases. This includes building, testing, and the actual deployment mechanics.
-2.  **Reliability and Repeatability:** Every deployment to production should be identical and repeatable. This means using consistent Docker images, environments, and deployment scripts.
-3.  **Fast Rollback Capability:** Despite best efforts, issues can arise in production. A robust deployment strategy includes the ability to quickly and safely roll back to a previous stable version.
-4.  **Monitoring and Observability:** After deployment, it's crucial to immediately monitor your application's health, performance, and error rates.
-5.  **Control and Approval:** Even in highly automated pipelines, critical production deployments often benefit from a final manual approval gate to ensure business readiness.
+1. **Automation is King:** Automate every step of the deployment process to eliminate human error, ensure consistency, and speed up releases. This includes building, testing, and the actual deployment mechanics.
+2. **Reliability and Repeatability:** Every deployment to production should be identical and repeatable. This means using consistent Docker images, environments, and deployment scripts.
+3. **Fast Rollback Capability:** Despite best efforts, issues can arise in production. A robust deployment strategy includes the ability to quickly and safely roll back to a previous stable version.
+4. **Monitoring and Observability:** After deployment, it's crucial to immediately monitor your application's health, performance, and error rates.
+5. **Control and Approval:** Even in highly automated pipelines, critical production deployments often benefit from a final manual approval gate to ensure business readiness.
 
 #### Our Production Deployment Strategy in GitLab CI/CD
 
 For our `learn-gitlab-app`, a common and effective strategy for production deployment in GitLab CI/CD involves:
 
-1.  **Dedicated Production Stage:** Having a specific `deploy_production` job within the `deploy` stage of your pipeline.
-2.  **`main` Branch as Truth:** Ensuring that only code merged into your `main` branch can trigger a production deployment. This branch represents the stable, release-ready version of your application.
-3.  **Manual Trigger (Often Recommended):** As we saw with manual deployment, requiring a manual trigger for the production job adds a human gate, allowing a designated team member to initiate the release at the opportune moment.
-4.  **Environment Variables for Configuration:** Utilizing GitLab CI/CD's **protected** and **masked** environment variables to store all production-specific secrets (API keys, database credentials) securely.
-5.  **Robust Deployment Scripting:** The `script` section of your production job will contain the actual commands to get your application live. This could involve:
+1. **Dedicated Production Stage:** Having a specific `deploy_production` job within the `deploy` stage of your pipeline.
+2. **`main` Branch as Truth:** Ensuring that only code merged into your `main` branch can trigger a production deployment. This branch represents the stable, release-ready version of your application.
+3. **Manual Trigger (Often Recommended):** As we saw with manual deployment, requiring a manual trigger for the production job adds a human gate, allowing a designated team member to initiate the release at the opportune moment.
+4. **Environment Variables for Configuration:** Utilizing GitLab CI/CD's **protected** and **masked** environment variables to store all production-specific secrets (API keys, database credentials) securely.
+5. **Robust Deployment Scripting:** The `script` section of your production job will contain the actual commands to get your application live. This could involve:
     * Pushing a Docker image to a production container registry.
     * Updating Kubernetes manifests and applying them to your production cluster (`kubectl`).
     * Syncing static assets to a cloud storage bucket (e.g., S3, Google Cloud Storage).
@@ -1853,7 +1866,7 @@ Common `when:` options:
 
 `rules` can evaluate various pipeline variables and contextual information:
 
-1.  **Branch Name (`$CI_COMMIT_BRANCH`):**
+1. **Branch Name (`$CI_COMMIT_BRANCH`):**
     Run jobs only for specific branches.
 
     ```yaml
@@ -1867,7 +1880,7 @@ Common `when:` options:
           when: on_success
     ```
 
-2.  **Tag (`$CI_COMMIT_TAG`):**
+2. **Tag (`$CI_COMMIT_TAG`):**
     Trigger actions only when a Git tag is pushed (common for production releases).
 
     ```yaml
@@ -1882,7 +1895,7 @@ Common `when:` options:
           allow_failure: false
     ```
 
-3.  **Pipeline Source (`$CI_PIPELINE_SOURCE`):**
+3. **Pipeline Source (`$CI_PIPELINE_SOURCE`):**
     Control jobs based on what triggered the pipeline (e.g., merge request, push, web UI, API).
 
     ```yaml
@@ -1896,7 +1909,7 @@ Common `when:` options:
           when: on_success
     ```
 
-4.  **File Changes (`changes` keyword):**
+4. **File Changes (`changes` keyword):**
     Execute a job only if specific files or directories have changed in the commit. This is powerful for monorepos or pipelines with independent components.
 
     ```yaml
@@ -1912,7 +1925,7 @@ Common `when:` options:
         - when: never # Otherwise, skip this job
     ```
 
-5.  **Variable Existence or Value:**
+5. **Variable Existence or Value:**
     Use `rules` to check for custom CI/CD variables (e.g., triggering a special build based on a variable set via the UI).
 
     ```yaml
@@ -1961,8 +1974,8 @@ These keywords help you organize your job definitions, reduce repetition, and en
 The `before_script` keyword defines commands that will run **before** the main commands in a job's `script` section. It's ideal for tasks that prepare the environment or necessary dependencies for the job's primary purpose.
 
 * **Scope:** `before_script` can be defined at two levels:
-    * **Globally (at the top level of `.gitlab-ci.yml`):** Commands defined here run before *every* job in the entire pipeline. This is useful for very common setup steps across all jobs (e.g., global dependency installation, repository configuration).
-    * **Per-Job:** Commands defined within a specific job's `before_script` run only before that particular job's `script`. This is more common for job-specific preparations.
+  * **Globally (at the top level of `.gitlab-ci.yml`):** Commands defined here run before *every* job in the entire pipeline. This is useful for very common setup steps across all jobs (e.g., global dependency installation, repository configuration).
+  * **Per-Job:** Commands defined within a specific job's `before_script` run only before that particular job's `script`. This is more common for job-specific preparations.
 * **Execution Order:** If `before_script` is defined both globally and per-job, the global `before_script` runs first, followed by the job-specific `before_script`, and then the main `script`.
 * **Failure Behavior:** If any command in `before_script` fails, the entire job immediately fails, and the main `script` is not executed. This ensures that the main job logic only runs if the prerequisites are met.
 
@@ -2173,7 +2186,7 @@ Think of non-production environments as your testing grounds. They help you catc
 
 Here are the typical non-production environments and their common deployment approaches within a GitLab CI/CD context:
 
-1.  **Development Environment (Dev)**
+1. **Development Environment (Dev)**
     * **Purpose:** Primarily for individual developers or small teams to test their work in progress. It's often highly fluid and might not require strict stability.
     * **Trigger:** Often deployed automatically on every push to feature branches or a shared `develop` branch.
     * **Deployment Method:**
@@ -2223,7 +2236,7 @@ Here are the typical non-production environments and their common deployment app
             action: stop
         ```
 
-2.  **Staging Environment (Staging/QA)**
+2. **Staging Environment (Staging/QA)**
     * **Purpose:** A production-like environment for final quality assurance, regression testing, and integration testing with other systems. It should mimic production as closely as possible in terms of infrastructure, data, and integrations.
     * **Trigger:** Often deployed automatically from the `main` (or release) branch after all CI tests pass, or sometimes manually triggered to control release cycles.
     * **Deployment Method:** Highly automated, typically pushing the same artifacts (e.g., Docker images) that will eventually go to production.
@@ -2246,7 +2259,7 @@ Here are the typical non-production environments and their common deployment app
             #   when: manual
         ```
 
-3.  **User Acceptance Testing (UAT) Environment (Optional but Recommended)**
+3. **User Acceptance Testing (UAT) Environment (Optional but Recommended)**
     * **Purpose:** For non-technical stakeholders (product owners, business users) to validate features and ensure they meet business requirements from a user's perspective. It bridges the gap between technical QA and real-world usage.
     * **Trigger:** Usually a manual deployment, initiated by QA or a release manager, to a stable build that has passed all automated and QA tests.
     * **Deployment Method:** Similar to staging, but perhaps with specific UAT data sets or configurations.
@@ -2288,12 +2301,12 @@ The **staging environment** is a critical checkpoint in your CI/CD pipeline. It'
 
 Deployments to staging are typically highly automated, often triggered directly from your `main` or a dedicated `release` branch once all automated tests have passed.
 
-1.  **Trigger Branch:** Code merged into the **`main` branch** (after passing all build and test stages) is the most common trigger for staging deployments. This ensures that only well-vetted code reaches staging.
-2.  **Automated or Manual Trigger:**
+1. **Trigger Branch:** Code merged into the **`main` branch** (after passing all build and test stages) is the most common trigger for staging deployments. This ensures that only well-vetted code reaches staging.
+2. **Automated or Manual Trigger:**
     * **Automated (Common):** The staging deployment job often runs `on_success` of the preceding `test` stage, providing continuous deployment to staging.
     * **Manual (Controlled):** For more controlled release cycles, you might prefer a `manual` trigger, allowing a QA lead or release manager to decide precisely when to update staging.
-3.  **Environment-Specific Configuration:** All staging-specific configuration (database URLs, API endpoints, third-party credentials) should be managed via **GitLab CI/CD variables** scoped to the `staging` environment. These variables should be **protected** and **masked**.
-4.  **Idempotent Deployment Scripts:** Your deployment scripts should be **idempotent**, meaning you can run them multiple times without causing unintended side effects. This ensures consistent deployments.
+3. **Environment-Specific Configuration:** All staging-specific configuration (database URLs, API endpoints, third-party credentials) should be managed via **GitLab CI/CD variables** scoped to the `staging` environment. These variables should be **protected** and **masked**.
+4. **Idempotent Deployment Scripts:** Your deployment scripts should be **idempotent**, meaning you can run them multiple times without causing unintended side effects. This ensures consistent deployments.
 
 #### Example `deploy_staging` Job in `.gitlab-ci.yml`
 
@@ -2407,19 +2420,19 @@ deploy_to_production:
 
 * **`stage: deploy`**: Places this job in the deployment stage, typically after all automated tests and perhaps a staging deployment.
 * **`rules:`**: This section defines the conditions under which the `deploy_to_production` job will appear in the pipeline:
-    * **`if: '$CI_COMMIT_BRANCH == "main"'`**: Ensures that this sensitive production deployment job is only available for pipelines triggered by commits to your designated production branch (e.g., `main`).
-    * **`when: manual`**: This is the core instruction. Instead of running automatically, the job will pause and display a "play" button in the GitLab UI, waiting for explicit interaction.
-    * **`allow_failure: false`**: This is the default and good practice. If the manual deployment fails after being triggered, the pipeline will reflect a failure, indicating an issue with the release.
+  * **`if: '$CI_COMMIT_BRANCH == "main"'`**: Ensures that this sensitive production deployment job is only available for pipelines triggered by commits to your designated production branch (e.g., `main`).
+  * **`when: manual`**: This is the core instruction. Instead of running automatically, the job will pause and display a "play" button in the GitLab UI, waiting for explicit interaction.
+  * **`allow_failure: false`**: This is the default and good practice. If the manual deployment fails after being triggered, the pipeline will reflect a failure, indicating an issue with the release.
 
 #### The User Experience in GitLab
 
 When a pipeline runs with a `when: manual` job:
 
-1.  The pipeline will execute all preceding automated stages (build, test, deploy to staging).
-2.  Upon reaching the stage containing the `deploy_to_production` job, the job will appear in the pipeline graph with a **grayed-out status and a "play" icon**.
-3.  A user with appropriate permissions (as defined in your project's protected branch settings for the `main` branch) can then click the "play" icon.
-4.  GitLab will prompt for confirmation. Once confirmed, the job will start executing its deployment script.
-5.  The job's status (pending, running, success, failed) will update in real-time in the pipeline view.
+1. The pipeline will execute all preceding automated stages (build, test, deploy to staging).
+2. Upon reaching the stage containing the `deploy_to_production` job, the job will appear in the pipeline graph with a **grayed-out status and a "play" icon**.
+3. A user with appropriate permissions (as defined in your project's protected branch settings for the `main` branch) can then click the "play" icon.
+4. GitLab will prompt for confirmation. Once confirmed, the job will start executing its deployment script.
+5. The job's status (pending, running, success, failed) will update in real-time in the pipeline view.
 
 By incorporating a strategic manual approval step, you add a layer of human intelligence and control, ensuring that your `learn-gitlab-app` reaches production only when everyone involved is confident and ready.
 
@@ -2502,12 +2515,12 @@ Think of them as on-demand, short-lived staging areas, tailored to each MR.
 
 #### Why Use Review Environments?
 
-  * **Visual Feedback:** Reviewers can see the changes live, interacting with the application in a realistic setting. This is far more effective than just reading code.
-  * **Isolated Testing:** Each MR gets its own environment, preventing conflicts and ensuring that changes are tested in isolation.
-  * **Faster Iteration:** Developers get rapid feedback, enabling quicker bug fixes and improvements.
-  * **Stakeholder Alignment:** Product owners, designers, and other non-technical stakeholders can easily review and approve changes.
-  * **Reduced Risk:** By validating changes in a temporary environment, you reduce the risk of introducing regressions into your main staging or production environments.
-  * **Automated Cleanup:** Review environments are typically automatically torn down when the MR is merged or closed, saving resources.
+* **Visual Feedback:** Reviewers can see the changes live, interacting with the application in a realistic setting. This is far more effective than just reading code.
+* **Isolated Testing:** Each MR gets its own environment, preventing conflicts and ensuring that changes are tested in isolation.
+* **Faster Iteration:** Developers get rapid feedback, enabling quicker bug fixes and improvements.
+* **Stakeholder Alignment:** Product owners, designers, and other non-technical stakeholders can easily review and approve changes.
+* **Reduced Risk:** By validating changes in a temporary environment, you reduce the risk of introducing regressions into your main staging or production environments.
+* **Automated Cleanup:** Review environments are typically automatically torn down when the MR is merged or closed, saving resources.
 
 #### Setting Up Review Environments in GitLab CI/CD
 
@@ -2561,31 +2574,31 @@ stop_review:
 
 **Key Configuration Points:**
 
-  * **Dedicated `review` Stage:** It's good practice to have a separate stage for review environment deployments.
-  * **`$CI_MERGE_REQUEST_IID`:** A GitLab CI/CD variable that provides the unique ID of the current Merge Request. This is useful for creating unique resources.
-  * **`$CI_COMMIT_REF_NAME`:** The branch name of the MR.
-  * **`$CI_ENVIRONMENT_SLUG`:** A URL-friendly version of the branch name, used for generating unique URLs.
-  * **`environment:` Block:**
-      * **`name:`:** Creates a unique environment name, often using the branch name.
-      * **`url:`:** Defines the URL where the review environment will be accessible. Using `$CI_ENVIRONMENT_SLUG` creates dynamic subdomains.
-      * **`on_stop:`:** Specifies a job (`stop_review` in this example) that will be triggered to clean up the environment.
-  * **`rules:`:**
-      * **`if: '$CI_PIPELINE_SOURCE == "merge_request_event"'`:** Ensures that the `deploy_review` job *only* runs for pipelines triggered by Merge Requests.
-      * **`when: on_success`:** Deploys the review environment after the build and test stages pass.
-  * **`stop_review` Job:** This job defines how to tear down the review environment. The `environment:action: stop` keyword tells GitLab that this job is responsible for cleaning up.
+* **Dedicated `review` Stage:** It's good practice to have a separate stage for review environment deployments.
+* **`$CI_MERGE_REQUEST_IID`:** A GitLab CI/CD variable that provides the unique ID of the current Merge Request. This is useful for creating unique resources.
+* **`$CI_COMMIT_REF_NAME`:** The branch name of the MR.
+* **`$CI_ENVIRONMENT_SLUG`:** A URL-friendly version of the branch name, used for generating unique URLs.
+* **`environment:` Block:**
+  * **`name:`:** Creates a unique environment name, often using the branch name.
+  * **`url:`:** Defines the URL where the review environment will be accessible. Using `$CI_ENVIRONMENT_SLUG` creates dynamic subdomains.
+  * **`on_stop:`:** Specifies a job (`stop_review` in this example) that will be triggered to clean up the environment.
+* **`rules:`:**
+  * **`if: '$CI_PIPELINE_SOURCE == "merge_request_event"'`:** Ensures that the `deploy_review` job *only* runs for pipelines triggered by Merge Requests.
+  * **`when: on_success`:** Deploys the review environment after the build and test stages pass.
+* **`stop_review` Job:** This job defines how to tear down the review environment. The `environment:action: stop` keyword tells GitLab that this job is responsible for cleaning up.
 
 #### Deployment Strategies for Review Environments
 
-  * **Docker Compose:** If your application is containerized, Docker Compose is a common way to spin up a review environment. You might have a base `docker-compose.yml` and a `docker-compose.review.yml` for overrides specific to review environments (e.g., unique port mappings, test databases).
-  * **Kubernetes:** For Kubernetes deployments, you'll likely create temporary namespaces or use unique labels to isolate review environment resources.
-  * **Serverless:** If using serverless functions, you might deploy to temporary function names or API Gateway stages.
-  * **Custom Scripts:** You can use any scripting language to deploy your application, as long as the script can dynamically configure the environment.
+* **Docker Compose:** If your application is containerized, Docker Compose is a common way to spin up a review environment. You might have a base `docker-compose.yml` and a `docker-compose.review.yml` for overrides specific to review environments (e.g., unique port mappings, test databases).
+* **Kubernetes:** For Kubernetes deployments, you'll likely create temporary namespaces or use unique labels to isolate review environment resources.
+* **Serverless:** If using serverless functions, you might deploy to temporary function names or API Gateway stages.
+* **Custom Scripts:** You can use any scripting language to deploy your application, as long as the script can dynamically configure the environment.
 
 #### Benefits of This Approach
 
-  * **Dynamic URLs:** GitLab automatically creates a link to the review environment within the Merge Request, making it easy for reviewers to access.
-  * **Automatic Cleanup:** The `stop_review` job ensures that resources are released when the MR is closed, preventing resource leaks.
-  * **Integration with GitLab UI:** GitLab tracks review environments, making it easy to see their status and access them directly from the MR.
+* **Dynamic URLs:** GitLab automatically creates a link to the review environment within the Merge Request, making it easy for reviewers to access.
+* **Automatic Cleanup:** The `stop_review` job ensures that resources are released when the MR is closed, preventing resource leaks.
+* **Integration with GitLab UI:** GitLab tracks review environments, making it easy to see their status and access them directly from the MR.
 
 By implementing review environments, you significantly improve the collaboration and quality of your development process, leading to faster and more reliable releases for your `learn-gitlab-app`.
 
@@ -2601,19 +2614,19 @@ In GitLab CI/CD, understanding the distinction between **Merge Request (MR) pipe
 
 A **Branch pipeline** is the standard pipeline that runs whenever you push a new commit to a specific branch (e.g., `main`, `develop`, `feature/my-new-feature`). It's the most common type of pipeline you'll encounter.
 
-  * **Trigger:** Pushing a commit directly to a branch.
-  * **Purpose:**
-      * **Continuous Integration:** For feature branches, it provides immediate feedback to the developer on the health of their latest changes (builds, unit tests, linting).
-      * **Branch Health:** For stable branches like `main` or `develop`, it continuously verifies the overall health of that branch, running all necessary checks after changes are merged into it.
-      * **Deployment:** Often triggers deployments to non-production environments (e.g., `main` to Staging) or production (if using continuous deployment directly from `main`).
-  * **Visibility:** You see these pipelines listed under `CI/CD > Pipelines` for the entire project.
-  * **Configuration:** Jobs typically define `rules:` (or `only/except`) based on `$CI_COMMIT_BRANCH` or `$CI_COMMIT_TAG`.
+* **Trigger:** Pushing a commit directly to a branch.
+* **Purpose:**
+  * **Continuous Integration:** For feature branches, it provides immediate feedback to the developer on the health of their latest changes (builds, unit tests, linting).
+  * **Branch Health:** For stable branches like `main` or `develop`, it continuously verifies the overall health of that branch, running all necessary checks after changes are merged into it.
+  * **Deployment:** Often triggers deployments to non-production environments (e.g., `main` to Staging) or production (if using continuous deployment directly from `main`).
+* **Visibility:** You see these pipelines listed under `CI/CD > Pipelines` for the entire project.
+* **Configuration:** Jobs typically define `rules:` (or `only/except`) based on `$CI_COMMIT_BRANCH` or `$CI_COMMIT_TAG`.
 
 **When to Use:**
 
-  * For every commit on every active branch to get basic CI feedback.
-  * For deployments from specific long-lived branches (e.g., `main` to production, `develop` to staging).
-  * For running scheduled tasks or specific branch-level maintenance jobs.
+* For every commit on every active branch to get basic CI feedback.
+* For deployments from specific long-lived branches (e.g., `main` to production, `develop` to staging).
+* For running scheduled tasks or specific branch-level maintenance jobs.
 
 **Example Branch Pipeline Rules:**
 
@@ -2642,22 +2655,22 @@ deploy_to_staging:
 
 A **Merge Request pipeline** is a special type of pipeline that runs specifically for a Merge Request. It's designed to validate the *merged result* of the source branch into the target branch *before* the actual merge occurs. This is critical for preventing breaking changes from entering your main branches.
 
-  * **Trigger:**
-      * When an MR is created or updated.
-      * When the target branch is updated (GitLab automatically re-runs the MR pipeline to validate against the latest target branch).
-      * Manually from the MR page.
-  * **Purpose:**
-      * **Pre-Merge Validation:** Simulates the merge and runs checks on the *result* of the merge commit. This catches potential conflicts or issues that might arise only after merging.
-      * **Quality Gate:** Serves as the primary quality gate for merging, often requiring successful pipeline execution for approval.
-      * **Review App Deployment:** Triggers the creation of ephemeral review environments.
-  * **Visibility:** These pipelines are prominently displayed on the **Merge Request page** itself, making it easy for reviewers to see the health of the proposed changes. They also appear under `CI/CD > Pipelines`.
-  * **Configuration:** Jobs use `rules:` (or `only/except`) based on `$CI_PIPELINE_SOURCE == "merge_request_event"`.
+* **Trigger:**
+  * When an MR is created or updated.
+  * When the target branch is updated (GitLab automatically re-runs the MR pipeline to validate against the latest target branch).
+  * Manually from the MR page.
+* **Purpose:**
+  * **Pre-Merge Validation:** Simulates the merge and runs checks on the *result* of the merge commit. This catches potential conflicts or issues that might arise only after merging.
+  * **Quality Gate:** Serves as the primary quality gate for merging, often requiring successful pipeline execution for approval.
+  * **Review App Deployment:** Triggers the creation of ephemeral review environments.
+* **Visibility:** These pipelines are prominently displayed on the **Merge Request page** itself, making it easy for reviewers to see the health of the proposed changes. They also appear under `CI/CD > Pipelines`.
+* **Configuration:** Jobs use `rules:` (or `only/except`) based on `$CI_PIPELINE_SOURCE == "merge_request_event"`.
 
 **When to Use:**
 
-  * For running comprehensive pre-merge checks (e.g., full test suites, security scans, code quality analysis).
-  * For deploying Review Apps specific to the MR.
-  * For any job that *must* pass before a merge is allowed.
+* For running comprehensive pre-merge checks (e.g., full test suites, security scans, code quality analysis).
+* For deploying Review Apps specific to the MR.
+* For any job that *must* pass before a merge is allowed.
 
 **Example MR Pipeline Rules:**
 
@@ -2691,13 +2704,13 @@ deploy_review_app:
 
 You can combine `rules` to create highly flexible jobs:
 
-  * **Jobs for all pipelines:** Default behavior if no `rules` are present.
+* **Jobs for all pipelines:** Default behavior if no `rules` are present.
 
-  * **Jobs specific to branch pushes:** Use `if: '$CI_COMMIT_BRANCH == "my-branch"'`
+* **Jobs specific to branch pushes:** Use `if: '$CI_COMMIT_BRANCH == "my-branch"'`
 
-  * **Jobs specific to MRs:** Use `if: '$CI_PIPELINE_SOURCE == "merge_request_event"'`
+* **Jobs specific to MRs:** Use `if: '$CI_PIPELINE_SOURCE == "merge_request_event"'`
 
-  * **Jobs that run on MRs *and* when merged to a specific branch:**
+* **Jobs that run on MRs *and* when merged to a specific branch:**
 
     ```yaml
     # Example: Run comprehensive tests on MRs AND when merged to main
@@ -2726,17 +2739,17 @@ In modern CI/CD pipelines, especially when interacting with cloud services, Kube
 
 #### Why `jq` is Indispensable in Your Pipeline
 
-  * **Extracting Specific Values:** Easily pull out an `id`, `status`, `URL`, or other key-value pairs from complex JSON.
-  * **Conditional Logic:** Use extracted values to drive subsequent actions (e.g., "if deployment status is 'Failed', trigger alert").
-  * **Data Transformation:** Reformat JSON output to suit your needs, such as creating a concise summary report.
-  * **Reduced Script Complexity:** Avoid writing brittle `grep | cut` chains for JSON, which often break with minor format changes.
-  * **Readability:** `jq` filters are often more readable and maintainable than equivalent shell acrobatics for JSON.
+* **Extracting Specific Values:** Easily pull out an `id`, `status`, `URL`, or other key-value pairs from complex JSON.
+* **Conditional Logic:** Use extracted values to drive subsequent actions (e.g., "if deployment status is 'Failed', trigger alert").
+* **Data Transformation:** Reformat JSON output to suit your needs, such as creating a concise summary report.
+* **Reduced Script Complexity:** Avoid writing brittle `grep | cut` chains for JSON, which often break with minor format changes.
+* **Readability:** `jq` filters are often more readable and maintainable than equivalent shell acrobatics for JSON.
 
 #### Installing `jq` in Your Pipeline
 
 Like other CLI tools, you need to ensure `jq` is available in your job's Docker image.
 
-1.  **Using a Pre-built Image (Recommended):**
+1. **Using a Pre-built Image (Recommended):**
     Many general-purpose images (like `alpine/git`, `ubuntu/curl`, or custom CI images) might already include `jq`. Check the image documentation or test it.
 
     ```yaml
@@ -2748,7 +2761,7 @@ Like other CLI tools, you need to ensure `jq` is available in your job's Docker 
         - curl -s "https://api.github.com/repos/json-api/json-api" | jq '.stargazers_count'
     ```
 
-2.  **Installing `jq` within Your Job:**
+2. **Installing `jq` within Your Job:**
     If your chosen image doesn't have `jq`, you can install it in your `before_script` or `script` section.
 
       * **For Alpine-based images (`node:lts-alpine`, `alpine/git`):**
@@ -2849,17 +2862,17 @@ In modern CI/CD pipelines, especially when interacting with cloud services, Kube
 
 #### Why `jq` is Indispensable in Your Pipeline
 
-  * **Extracting Specific Values:** Effortlessly pull out an `id`, `status`, `URL`, or other key-value pairs from complex nested JSON structures.
-  * **Conditional Logic:** Use extracted values to drive subsequent actions (e.g., "if deployment status is 'Failed', trigger an alert and retry").
-  * **Data Transformation:** Reformat JSON output to suit your needs, such as creating a concise summary report or converting data for another tool.
-  * **Reduced Script Complexity:** Avoid writing brittle `grep | cut | awk` chains for JSON, which often break with minor format changes or new fields. `jq` handles JSON parsing robustly.
-  * **Readability & Maintainability:** `jq` filters are often more expressive and easier to understand than equivalent shell scripting for JSON manipulation.
+* **Extracting Specific Values:** Effortlessly pull out an `id`, `status`, `URL`, or other key-value pairs from complex nested JSON structures.
+* **Conditional Logic:** Use extracted values to drive subsequent actions (e.g., "if deployment status is 'Failed', trigger an alert and retry").
+* **Data Transformation:** Reformat JSON output to suit your needs, such as creating a concise summary report or converting data for another tool.
+* **Reduced Script Complexity:** Avoid writing brittle `grep | cut | awk` chains for JSON, which often break with minor format changes or new fields. `jq` handles JSON parsing robustly.
+* **Readability & Maintainability:** `jq` filters are often more expressive and easier to understand than equivalent shell scripting for JSON manipulation.
 
 #### Installing `jq` in Your Pipeline
 
 Like any other CLI tool, you need to ensure `jq` is available in your job's Docker image.
 
-1.  **Using a Pre-built Image (Recommended for Simplicity):**
+1. **Using a Pre-built Image (Recommended for Simplicity):**
     Many general-purpose images (like `alpine/git`, `ubuntu/curl`, or custom CI images) might already include `jq`. Always check the image documentation or simply test for `jq --version`.
 
     ```yaml
@@ -2871,7 +2884,7 @@ Like any other CLI tool, you need to ensure `jq` is available in your job's Dock
         - curl -s "https://api.github.com/repos/json-api/json-api" | jq '.stargazers_count'
     ```
 
-2.  **Installing `jq` within Your Job Script (For Customization or Leaner Base Images):**
+2. **Installing `jq` within Your Job Script (For Customization or Leaner Base Images):**
     If your chosen base image doesn't include `jq`, you can install it directly in your job's `before_script` or `script` section.
 
       * **For Alpine-based images (`node:lts-alpine`, `alpine/git`):**
@@ -2917,7 +2930,7 @@ get_latest_version:
     - # You can now use $LATEST_VERSION in subsequent commands (e.g., to fetch a specific asset)
 ```
 
-  * `jq -r '.tag_name'` selects the value of the `tag_name` key and outputs it as a raw string.
+* `jq -r '.tag_name'` selects the value of the `tag_name` key and outputs it as a raw string.
 
 **Scenario 2: Conditional Logic Based on Status**
 Check a deployment status from a cloud provider's API and fail the job if it's not "RUNNING".
@@ -2937,7 +2950,7 @@ check_deployment_status:
       fi
 ```
 
-  * `jq -r '.status'` extracts the status. The shell `if` condition then acts upon this value.
+* `jq -r '.status'` extracts the status. The shell `if` condition then acts upon this value.
 
 **Scenario 3: Extracting from Arrays or Nested Objects**
 Suppose an API returns a list of users, and you want the name of the second user (index 1).
@@ -2956,8 +2969,8 @@ extract_user_data:
     - echo "The second user's name is: $SECOND_USER_NAME"
 ```
 
-  * `.[1]` selects the second element in the array (arrays are 0-indexed).
-  * `.name` then selects the `name` field from that object.
+* `.[1]` selects the second element in the array (arrays are 0-indexed).
+* `.name` then selects the `name` field from that object.
 
 **Scenario 4: Filtering and Creating New JSON Objects**
 Transforming complex log entries into a simplified summary.
@@ -2976,7 +2989,7 @@ summarize_log:
     - echo "$SIMPLIFIED_LOG"
 ```
 
-  * `jq '{key1: .path.to.value1, key2: .value2}'` constructs a new JSON object with specified keys and values extracted from the input.
+* `jq '{key1: .path.to.value1, key2: .value2}'` constructs a new JSON object with specified keys and values extracted from the input.
 
 By mastering `jq`, you unlock the full potential of your CLI tools that output JSON, making your GitLab CI/CD pipelines significantly more intelligent, robust, and capable of responding dynamically to the state of your infrastructure and services.
 
@@ -2994,19 +3007,19 @@ GitLab CI/CD offers first-class support for dynamic environments, making them a 
 
 A dynamic environment is a full, runnable instance of your application that is:
 
-  * **Isolated:** Each environment is independent, preventing conflicts between different changes being worked on simultaneously.
-  * **Temporary:** Created on demand (e.g., for an MR) and automatically spun down when no longer needed (e.g., when the MR is merged or closed).
-  * **Reproducible:** Built from your CI/CD pipeline using infrastructure-as-code principles, ensuring consistency.
-  * **Accessible:** Often comes with a unique, accessible URL for easy review.
+* **Isolated:** Each environment is independent, preventing conflicts between different changes being worked on simultaneously.
+* **Temporary:** Created on demand (e.g., for an MR) and automatically spun down when no longer needed (e.g., when the MR is merged or closed).
+* **Reproducible:** Built from your CI/CD pipeline using infrastructure-as-code principles, ensuring consistency.
+* **Accessible:** Often comes with a unique, accessible URL for easy review.
 
 #### Why Use Dynamic Environments?
 
-  * **Accelerated Feedback Cycles:** Developers, designers, and product owners can instantly see and interact with proposed changes in a live environment, leading to quicker approvals and iterations.
-  * **Improved Collaboration:** Facilitates a shared understanding of new features among all stakeholders, bridging the gap between code and live functionality.
-  * **Enhanced Quality:** Allows for more thorough and isolated testing (manual, integration, UAT) of individual features before they are merged into a shared branch.
-  * **Reduced Resource Waste:** Environments are only active when needed and automatically cleaned up, optimizing infrastructure costs.
-  * **Risk Mitigation:** Catches integration issues or UI/UX problems that might not be apparent from code review alone, well before hitting a stable staging environment or production.
-  * **Parallel Development:** Multiple teams or developers can work on separate features concurrently, each with their own dedicated test environment.
+* **Accelerated Feedback Cycles:** Developers, designers, and product owners can instantly see and interact with proposed changes in a live environment, leading to quicker approvals and iterations.
+* **Improved Collaboration:** Facilitates a shared understanding of new features among all stakeholders, bridging the gap between code and live functionality.
+* **Enhanced Quality:** Allows for more thorough and isolated testing (manual, integration, UAT) of individual features before they are merged into a shared branch.
+* **Reduced Resource Waste:** Environments are only active when needed and automatically cleaned up, optimizing infrastructure costs.
+* **Risk Mitigation:** Catches integration issues or UI/UX problems that might not be apparent from code review alone, well before hitting a stable staging environment or production.
+* **Parallel Development:** Multiple teams or developers can work on separate features concurrently, each with their own dedicated test environment.
 
 #### Implementing Dynamic Environments with GitLab CI/CD
 
@@ -3068,13 +3081,13 @@ stop_review_app:
 
 #### Key Elements for Dynamic Environments
 
-  * **`environment:` Keyword:** The cornerstone. It links your CI/CD job to a GitLab Environment entry.
-      * **`name:`:** Crucial for uniqueness. Use predefined CI/CD variables like `$CI_COMMIT_REF_NAME` (branch name) or `$CI_MERGE_REQUEST_IID` (MR ID) to create unique names (e.g., `review/$CI_COMMIT_REF_NAME`).
-      * **`url:`:** Provides a direct link to the live environment in the GitLab UI (on the MR page and under `Deployments > Environments`). Use `$CI_ENVIRONMENT_SLUG` to construct dynamic subdomains (e.g., `https://$CI_ENVIRONMENT_SLUG.your-domain.com`).
-      * **`on_stop:`:** Specifies a separate job that GitLab will trigger when the environment needs to be cleaned up (e.g., when the MR is merged or closed).
-  * **`rules:` for Triggering:** Use `if: '$CI_PIPELINE_SOURCE == "merge_request_event"'` to ensure the dynamic environment jobs only run for Merge Request pipelines.
-  * **Unique Resources:** Your deployment scripts must be able to create unique resources for each environment (e.g., unique database names, container names, Kubernetes namespaces, or DNS records/subdomains). GitLab's `$CI_ENVIRONMENT_SLUG` is often used for this.
-  * **Cleanup Job (`action: stop`):** This vital job ensures that temporary resources are deprovisioned, preventing resource sprawl and unnecessary costs. It's usually `manual` but can be set to run `on_succeeded` or `on_failed` when an MR closes.
+* **`environment:` Keyword:** The cornerstone. It links your CI/CD job to a GitLab Environment entry.
+  * **`name:`:** Crucial for uniqueness. Use predefined CI/CD variables like `$CI_COMMIT_REF_NAME` (branch name) or `$CI_MERGE_REQUEST_IID` (MR ID) to create unique names (e.g., `review/$CI_COMMIT_REF_NAME`).
+  * **`url:`:** Provides a direct link to the live environment in the GitLab UI (on the MR page and under `Deployments > Environments`). Use `$CI_ENVIRONMENT_SLUG` to construct dynamic subdomains (e.g., `https://$CI_ENVIRONMENT_SLUG.your-domain.com`).
+  * **`on_stop:`:** Specifies a separate job that GitLab will trigger when the environment needs to be cleaned up (e.g., when the MR is merged or closed).
+* **`rules:` for Triggering:** Use `if: '$CI_PIPELINE_SOURCE == "merge_request_event"'` to ensure the dynamic environment jobs only run for Merge Request pipelines.
+* **Unique Resources:** Your deployment scripts must be able to create unique resources for each environment (e.g., unique database names, container names, Kubernetes namespaces, or DNS records/subdomains). GitLab's `$CI_ENVIRONMENT_SLUG` is often used for this.
+* **Cleanup Job (`action: stop`):** This vital job ensures that temporary resources are deprovisioned, preventing resource sprawl and unnecessary costs. It's usually `manual` but can be set to run `on_succeeded` or `on_failed` when an MR closes.
 
 By embracing dynamic environments, you empower your team with unprecedented flexibility and feedback loops, dramatically improving the speed and quality of your `learn-gitlab-app`'s development lifecycle.
 
@@ -3091,34 +3104,34 @@ They provide stable ground for continuous integration, thorough testing, and ult
 
 A static environment is a pre-defined, continuously running instance of your application that:
 
-  * **Is Persistent:** It exists indefinitely (or until explicitly decommissioned).
-  * **Has a Fixed Purpose:** It serves a specific role in your SDLC (e.g., QA testing, UAT, live production).
-  * **Often Has a Fixed URL:** Accessible at a consistent address (e.g., `https://staging.your-app.com`, `https://prod.your-app.com`).
-  * **Is Shared:** Multiple developers or teams may deploy to and test against the same static environment.
+* **Is Persistent:** It exists indefinitely (or until explicitly decommissioned).
+* **Has a Fixed Purpose:** It serves a specific role in your SDLC (e.g., QA testing, UAT, live production).
+* **Often Has a Fixed URL:** Accessible at a consistent address (e.g., `https://staging.your-app.com`, `https://prod.your-app.com`).
+* **Is Shared:** Multiple developers or teams may deploy to and test against the same static environment.
 
 #### Why Use Static Environments?
 
-  * **Foundation for CI/CD:** Provides stable targets for continuous integration and delivery.
-  * **Comprehensive Testing:** Ideal for running full regression tests, performance tests, and security scans against a stable, integrated version of your application.
-  * **User Acceptance Testing (UAT):** Essential for business stakeholders to perform final validation before production.
-  * **Production Deployment:** The ultimate static environment where your live application resides.
-  * **Resource Management:** Centralized management of resources for a given stage.
+* **Foundation for CI/CD:** Provides stable targets for continuous integration and delivery.
+* **Comprehensive Testing:** Ideal for running full regression tests, performance tests, and security scans against a stable, integrated version of your application.
+* **User Acceptance Testing (UAT):** Essential for business stakeholders to perform final validation before production.
+* **Production Deployment:** The ultimate static environment where your live application resides.
+* **Resource Management:** Centralized management of resources for a given stage.
 
 #### Common Static Environments and Their Roles
 
-1.  **Development/Integration Environment:**
+1. **Development/Integration Environment:**
 
       * **Purpose:** A shared environment for integrating changes from multiple feature branches. Often the first full integration point after local development.
       * **Trigger:** Typically automatic deployment from a `develop` or `integration` branch upon successful CI.
       * **Configuration:** Uses environment-specific variables for dev databases, mock APIs, etc.
 
-2.  **Staging/QA Environment:**
+2. **Staging/QA Environment:**
 
       * **Purpose:** A near-production replica used for final quality assurance, end-to-end testing, and pre-production checks.
       * **Trigger:** Often automatic deployment from the `main` or `release` branch after all automated tests pass, or a manual trigger for more controlled releases.
       * **Configuration:** Mirrors production infrastructure and data as closely as possible, using staging-specific secrets.
 
-3.  **Production Environment:**
+3. **Production Environment:**
 
       * **Purpose:** The live, user-facing environment.
       * **Trigger:** Typically a manual trigger for controlled deployments from the `main` branch, often after successful UAT on staging.
@@ -3175,13 +3188,13 @@ deploy_to_production:
   # Ensure production secrets are securely configured in GitLab CI/CD Variables with 'Protected' & 'Masked' flags
 ```
 
-#### Key Characteristics of Static Environment Definitions:
+#### Key Characteristics of Static Environment Definitions
 
-  * **`environment:name` Consistency:** The `name` provided in the `environment:` block should remain constant for a given static environment (e.g., always `staging`, always `production`). This allows GitLab to track deployments, show environment history, and link to the correct URLs under `Deployments > Environments`.
-  * **`environment:url` (Optional but Recommended):** Provides a direct link to the live environment, visible on the pipeline and environment pages.
-  * **`rules:` for Control:** You'll frequently use `rules` to dictate *when* a deployment to a static environment occurs (e.g., `main` branch pushes for staging, manual trigger for production).
-  * **Secure Variables:** Crucially, all sensitive configuration for static environments (especially production) should be stored as **Protected and Masked CI/CD Variables** in GitLab.
-  * **Idempotency:** Your deployment scripts should be idempotent, meaning running them multiple times yields the same result without unintended side effects. This is vital for reliable updates to long-lived environments.
+* **`environment:name` Consistency:** The `name` provided in the `environment:` block should remain constant for a given static environment (e.g., always `staging`, always `production`). This allows GitLab to track deployments, show environment history, and link to the correct URLs under `Deployments > Environments`.
+* **`environment:url` (Optional but Recommended):** Provides a direct link to the live environment, visible on the pipeline and environment pages.
+* **`rules:` for Control:** You'll frequently use `rules` to dictate *when* a deployment to a static environment occurs (e.g., `main` branch pushes for staging, manual trigger for production).
+* **Secure Variables:** Crucially, all sensitive configuration for static environments (especially production) should be stored as **Protected and Masked CI/CD Variables** in GitLab.
+* **Idempotency:** Your deployment scripts should be idempotent, meaning running them multiple times yields the same result without unintended side effects. This is vital for reliable updates to long-lived environments.
 
 By strategically defining and deploying to static environments, you create a robust and predictable path for your `learn-gitlab-app` to move from development to production, ensuring stability and control at every critical stage.
 
@@ -3192,28 +3205,28 @@ By strategically defining and deploying to static environments, you create a rob
 
 In a robust CI/CD pipeline, your application's configuration often varies depending on the environment it's deployed to. For instance:
 
-  * **Development** might use a local SQLite database and mock APIs.
-  * **Staging** needs a more production-like PostgreSQL database and integrates with real (but test) third-party services.
-  * **Production** requires a highly performant, secure PostgreSQL database, live API keys, and perhaps different logging levels.
+* **Development** might use a local SQLite database and mock APIs.
+* **Staging** needs a more production-like PostgreSQL database and integrates with real (but test) third-party services.
+* **Production** requires a highly performant, secure PostgreSQL database, live API keys, and perhaps different logging levels.
 
 Hardcoding these differences is inflexible and insecure. This is where **scoping CI/CD variables to specific environments** in GitLab becomes incredibly powerful. It allows you to define multiple values for the *same variable key*, each applying only when a job targets a particular environment.
 
 #### Why Scope Your Variables?
 
-  * **Security:** Prevents sensitive production secrets from accidentally being used or exposed in less secure development or staging environments.
-  * **Flexibility:** Easily manage different configurations without changing your `.gitlab-ci.yml` or application code for each deployment target.
-  * **Reduced Errors:** Ensures the correct credentials and settings are always used for the intended environment, preventing "wrong environment" bugs.
-  * **Clearer Management:** Centralizes environment-specific configuration within GitLab's UI, making it auditable and easy to update.
-  * **Compliance:** Helps meet security and compliance requirements by strictly controlling variable access.
+* **Security:** Prevents sensitive production secrets from accidentally being used or exposed in less secure development or staging environments.
+* **Flexibility:** Easily manage different configurations without changing your `.gitlab-ci.yml` or application code for each deployment target.
+* **Reduced Errors:** Ensures the correct credentials and settings are always used for the intended environment, preventing "wrong environment" bugs.
+* **Clearer Management:** Centralizes environment-specific configuration within GitLab's UI, making it auditable and easy to update.
+* **Compliance:** Helps meet security and compliance requirements by strictly controlling variable access.
 
 #### How to Scope Variables in GitLab CI/CD
 
 GitLab's CI/CD variable management UI provides direct support for environment scoping.
 
-1.  **Navigate to Variables:**
+1. **Navigate to Variables:**
     Go to your GitLab project \> **Settings \> CI/CD \> Variables**.
 
-2.  **Add/Edit a Variable:**
+2. **Add/Edit a Variable:**
     When you add a new variable or edit an existing one, you'll see an "Environment scope" field.
 
       * **Key:** The name of your variable (e.g., `DATABASE_URL`, `API_KEY`, `LOG_LEVEL`).
@@ -3303,9 +3316,9 @@ deploy_to_production:
 
 #### Important Considerations
 
-  * **Order of Precedence:** If a variable is defined with a wildcard (`*`) scope *and* a more specific environment scope, the **most specific scope takes precedence**.
-  * **Protected Branches:** Ensure your environment names align with your protected branch settings if you use protected variables. For a variable scoped to `production` and marked `Protected`, the job must be running on a protected branch or tag that is allowed to use `production` environments.
-  * **File Variables:** Scoping also applies to `File` type variables, ensuring that environment-specific certificates or configuration files are injected correctly.
+* **Order of Precedence:** If a variable is defined with a wildcard (`*`) scope *and* a more specific environment scope, the **most specific scope takes precedence**.
+* **Protected Branches:** Ensure your environment names align with your protected branch settings if you use protected variables. For a variable scoped to `production` and marked `Protected`, the job must be running on a protected branch or tag that is allowed to use `production` environments.
+* **File Variables:** Scoping also applies to `File` type variables, ensuring that environment-specific certificates or configuration files are injected correctly.
 
 By effectively scoping your CI/CD variables, you create a cleaner, more secure, and highly adaptable pipeline for your `learn-gitlab-app`, ensuring that each environment gets precisely the configuration it needs.
 
@@ -3334,39 +3347,39 @@ Merge Requests (or Pull Requests in other Git platforms) are much more than just
 
 Here's how we'll leverage MRs to simulate a real-world project:
 
-1.  **Issue Creation:**
+1. **Issue Creation:**
     * Start by creating an **Issue** in GitLab for each new feature or bug fix you want to implement. This issue defines the task and provides a central place for discussions and requirements.
     * *Simulation:* Create an issue like "Implement User Profile Page" or "Fix Login Bug."
 
-2.  **Feature Branching:**
+2. **Feature Branching:**
     * From your Issue, create a **new feature branch** (e.g., `feature/user-profile` or `bugfix/login-issue`). This ensures your work is isolated and doesn't impact the `main` branch directly.
     * *Simulation:* Work on your new feature or bug fix locally on this branch.
 
-3.  **Iterative Development & Commits:**
+3. **Iterative Development & Commits:**
     * Make changes, commit frequently, and push your commits to your feature branch.
     * *Simulation:* As you push commits, observe how **Branch Pipelines** run, providing immediate feedback on your individual changes (linting, unit tests).
 
-4.  **Creating a Merge Request:**
+4. **Creating a Merge Request:**
     * Once you're ready for feedback or when your feature is complete, open a **Merge Request** from your feature branch to the `main` (or `develop`) branch.
     * *Simulation:* Craft a clear MR title and description, explaining what the changes are and why they're needed. Link it to your original Issue.
 
-5.  **MR Pipeline Execution:**
+5. **MR Pipeline Execution:**
     * Upon creating or updating the MR, GitLab will automatically trigger an **MR Pipeline**. This pipeline is designed to validate the *merged result* of your feature branch into the target branch. It will run more comprehensive tests, potentially security scans, and deploy a Review App.
     * *Simulation:* Watch the MR pipeline. Does it pass all tests? Does the Review App deploy successfully? If not, iterate and push more commits to your feature branch, which will trigger new MR pipelines.
 
-6.  **Code Review and Feedback:**
+6. **Code Review and Feedback:**
     * Request reviews from teammates (or imagine requesting reviews from yourself!). Engage in discussions within the MR. Provide and respond to feedback.
     * *Simulation:* Pretend to be a reviewer. Are the changes clear? Is the code quality good?
 
-7.  **Review App Validation:**
+7. **Review App Validation:**
     * Access the Review App URL directly from the MR page. Test the new feature visually and functionally in a live environment.
     * *Simulation:* "Play" with your new feature. Does it behave as expected? Does it look right?
 
-8.  **Addressing Feedback & Iteration:**
+8. **Addressing Feedback & Iteration:**
     * Based on review comments or issues found in the Review App, make further changes to your feature branch. Each new commit will trigger a fresh MR pipeline.
     * *Simulation:* This iterative process is key to high-quality code.
 
-9.  **Approvals and Merging:**
+9. **Approvals and Merging:**
     * Once all discussions are resolved, all pipelines pass, and the feature is validated in the Review App, the MR can be approved and **merged**.
     * *Simulation:* Click the "Merge" button. This signifies that your changes are now integrated into the `main` branch.
 
@@ -3388,34 +3401,34 @@ For modern web applications, **Playwright** has emerged as a powerful and reliab
 
 #### Why End-to-End Testing is Essential
 
-  * **Holistic Validation:** E2E tests cover the entire application stack, including the UI, API, database, and integrations with external services.
-  * **User Journey Verification:** They confirm that critical user flows (e.g., login, signup, checkout, data submission) work correctly, mimicking how a real user would interact with your application.
-  * **Regression Prevention:** Catches regressions that might be missed by unit or integration tests, especially those related to how different components interact.
-  * **Increased Confidence:** Passing E2E tests provide high confidence that your application is functional and ready for deployment.
-  * **Business Assurance:** Directly validates features against business requirements from a user's perspective.
+* **Holistic Validation:** E2E tests cover the entire application stack, including the UI, API, database, and integrations with external services.
+* **User Journey Verification:** They confirm that critical user flows (e.g., login, signup, checkout, data submission) work correctly, mimicking how a real user would interact with your application.
+* **Regression Prevention:** Catches regressions that might be missed by unit or integration tests, especially those related to how different components interact.
+* **Increased Confidence:** Passing E2E tests provide high confidence that your application is functional and ready for deployment.
+* **Business Assurance:** Directly validates features against business requirements from a user's perspective.
 
 #### Why Playwright for E2E Tests?
 
 Playwright, developed by Microsoft, offers several compelling advantages for E2E testing:
 
-  * **Multi-Browser Support:** Supports Chromium, Firefox, and WebKit (Safari's engine) with a single API, ensuring cross-browser compatibility.
-  * **Language Support:** Provides APIs for TypeScript, JavaScript, Python, .NET, and Java. (We'll focus on **JavaScript/TypeScript** for web apps).
-  * **Auto-Waiting:** Automatically waits for elements to be ready, reducing flakiness and simplifying test code.
-  * **Powerful Selectors:** Robust and resilient selectors (including text, CSS, and XPath) that make tests less prone to breaking due to minor UI changes.
-  * **Built-in Capabilities:** Includes features like screenshotting, video recording, and tracing out of the box for excellent debugging.
-  * **Headless and Headed Modes:** Can run tests silently in the background (headless) for CI/CD or with a visible browser (headed) for debugging.
+* **Multi-Browser Support:** Supports Chromium, Firefox, and WebKit (Safari's engine) with a single API, ensuring cross-browser compatibility.
+* **Language Support:** Provides APIs for TypeScript, JavaScript, Python, .NET, and Java. (We'll focus on **JavaScript/TypeScript** for web apps).
+* **Auto-Waiting:** Automatically waits for elements to be ready, reducing flakiness and simplifying test code.
+* **Powerful Selectors:** Robust and resilient selectors (including text, CSS, and XPath) that make tests less prone to breaking due to minor UI changes.
+* **Built-in Capabilities:** Includes features like screenshotting, video recording, and tracing out of the box for excellent debugging.
+* **Headless and Headed Modes:** Can run tests silently in the background (headless) for CI/CD or with a visible browser (headed) for debugging.
 
 #### Setting Up Playwright E2E Tests in GitLab CI/CD
 
 Integrating Playwright into your GitLab CI/CD pipeline typically involves these steps:
 
-1.  **Project Setup (Local):**
+1. **Project Setup (Local):**
 
       * Install Playwright in your project: `npm init playwright@latest`
       * Write your E2E tests in the `tests/` directory (or wherever configured).
       * Ensure your application can be run locally for testing (e.g., `npm start` for a dev server).
 
-2.  **Docker Image with Browser Dependencies:**
+2. **Docker Image with Browser Dependencies:**
     The most crucial step for CI/CD is using a Docker image that includes not only Node.js (or Python) but also the necessary browser binaries and their dependencies. Playwright provides official images perfect for this.
 
     ```yaml
@@ -3558,18 +3571,18 @@ deploy_app:
 
 When `generate_build_info` completes:
 
-1.  GitLab scans the `build_info.env` file specified in `artifacts:reports:dotenv`.
-2.  It extracts the key-value pairs (e.g., `BUILD_VERSION=1.0.abc1234`, `API_ENDPOINT=https://api.dev-branch.example.com`).
-3.  These variables are then internally registered by GitLab.
-4.  When `deploy_app` starts, and it depends on `generate_build_info` (either implicitly by being in a later stage or explicitly via `needs`), GitLab automatically injects these variables into its environment.
+1. GitLab scans the `build_info.env` file specified in `artifacts:reports:dotenv`.
+2. It extracts the key-value pairs (e.g., `BUILD_VERSION=1.0.abc1234`, `API_ENDPOINT=https://api.dev-branch.example.com`).
+3. These variables are then internally registered by GitLab.
+4. When `deploy_app` starts, and it depends on `generate_build_info` (either implicitly by being in a later stage or explicitly via `needs`), GitLab automatically injects these variables into its environment.
 
 #### Important Considerations
 
-  * **Scope:** Variables passed via `dotenv` are available to all subsequent jobs *in the same pipeline* that explicitly or implicitly depend on the job that produced the `dotenv` artifact.
-  * **Size Limits:** This method is best for passing small amounts of text-based data (e.g., IDs, URLs, simple flags). For larger data (files, complex JSON objects), consider using regular `artifacts:paths` to share files.
-  * **Security:** Avoid passing highly sensitive credentials directly through `dotenv` if possible, especially if the job generating them is not highly secured. For secrets, it's always better to use GitLab's protected and masked CI/CD variables.
-  * **Dependency:** Ensure the consuming job correctly defines its `needs` (or is in a subsequent stage) so that GitLab knows the dependency and can provide the variables.
-  * **Overwriting:** If a variable from `dotenv` has the same name as a predefined GitLab CI/CD variable or a project-level variable, the `dotenv` variable will typically take precedence within that specific job.
+* **Scope:** Variables passed via `dotenv` are available to all subsequent jobs *in the same pipeline* that explicitly or implicitly depend on the job that produced the `dotenv` artifact.
+* **Size Limits:** This method is best for passing small amounts of text-based data (e.g., IDs, URLs, simple flags). For larger data (files, complex JSON objects), consider using regular `artifacts:paths` to share files.
+* **Security:** Avoid passing highly sensitive credentials directly through `dotenv` if possible, especially if the job generating them is not highly secured. For secrets, it's always better to use GitLab's protected and masked CI/CD variables.
+* **Dependency:** Ensure the consuming job correctly defines its `needs` (or is in a subsequent stage) so that GitLab knows the dependency and can provide the variables.
+* **Overwriting:** If a variable from `dotenv` has the same name as a predefined GitLab CI/CD variable or a project-level variable, the `dotenv` variable will typically take precedence within that specific job.
 
 By mastering the use of `dotenv` artifacts, you gain a powerful and flexible way to orchestrate complex workflows in your GitLab CI/CD pipelines, allowing jobs to collaborate and build upon each other's outputs.
 
@@ -3584,17 +3597,17 @@ This assignment focuses on configuring our Playwright E2E test job to generate a
 
 #### Why Publish JUnit Reports?
 
-  * **Merge Request Widget:** The most impactful feature. When you open a Merge Request, GitLab will show a summary of test results directly on the page, highlighting newly failed, fixed, and existing failures compared to the target branch.
-  * **Pipeline `Tests` Tab:** Provides a detailed, browsable list of all test suites and test cases from a pipeline run, including execution time and any error messages.
-  * **Faster Debugging:** A developer can see which specific tests failed, click on them to view details, and get a clear picture of the failure without sifting through the entire job log.
-  * **Quality Gates:** The report can be a key part of your merge strategy. If the E2E tests fail, you can prevent the MR from being merged.
-  * **Historical Data:** GitLab tracks test results over time, allowing you to see trends in test failures and performance.
+* **Merge Request Widget:** The most impactful feature. When you open a Merge Request, GitLab will show a summary of test results directly on the page, highlighting newly failed, fixed, and existing failures compared to the target branch.
+* **Pipeline `Tests` Tab:** Provides a detailed, browsable list of all test suites and test cases from a pipeline run, including execution time and any error messages.
+* **Faster Debugging:** A developer can see which specific tests failed, click on them to view details, and get a clear picture of the failure without sifting through the entire job log.
+* **Quality Gates:** The report can be a key part of your merge strategy. If the E2E tests fail, you can prevent the MR from being merged.
+* **Historical Data:** GitLab tracks test results over time, allowing you to see trends in test failures and performance.
 
 #### Generating a JUnit Report with Playwright
 
 Playwright has a built-in `junit` reporter that can generate JUnit XML files. We just need to configure it in `playwright.config.ts`.
 
-1.  **Configure the Reporter:**
+1. **Configure the Reporter:**
     In your `playwright.config.ts` file, specify the `junit` reporter and an `outputFile` path.
 
     ```typescript
@@ -3615,7 +3628,7 @@ Playwright has a built-in `junit` reporter that can generate JUnit XML files. We
 
     This configuration tells Playwright to generate a JUnit XML file named `e2e-junit-report.xml` inside the `test-results/` directory every time tests are run.
 
-2.  **Ensure the Output Directory Exists:**
+2. **Ensure the Output Directory Exists:**
     Make sure your test runner or a script creates the `test-results/` directory if it doesn't exist, as Playwright's reporter will try to write to it.
 
 #### Publishing the Report in `.gitlab-ci.yml`
@@ -3661,13 +3674,13 @@ e2e_tests:
 
 #### What Happens When This Job Runs?
 
-1.  **Job Execution:** The `e2e_tests` job starts, pulling the Playwright Docker image and running your script.
-2.  **Test Run:** `npx playwright test` executes all your E2E tests.
-3.  **Report Generation:** As configured in `playwright.config.ts`, the `junit` reporter generates `test-results/e2e-junit-report.xml`.
-4.  **Artifact Upload:** The `artifacts:` section in your `.gitlab-ci.yml` tells GitLab to upload two types of artifacts after the job completes:
+1. **Job Execution:** The `e2e_tests` job starts, pulling the Playwright Docker image and running your script.
+2. **Test Run:** `npx playwright test` executes all your E2E tests.
+3. **Report Generation:** As configured in `playwright.config.ts`, the `junit` reporter generates `test-results/e2e-junit-report.xml`.
+4. **Artifact Upload:** The `artifacts:` section in your `.gitlab-ci.yml` tells GitLab to upload two types of artifacts after the job completes:
       * **Regular Artifacts (`paths`):** The entire `test-results/` directory (including screenshots, traces, and the XML file itself) is saved as a downloadable archive.
       * **Report Artifacts (`reports:junit`):** GitLab specifically parses the `e2e-junit-report.xml` file.
-5.  **UI Display:**
+5. **UI Display:**
       * **Merge Request:** If this pipeline is part of an MR, a test report widget will appear, showing a summary of test changes (newly failed, resolved, etc.).
       * **Pipeline View:** A new `Tests` tab will be available on the pipeline's details page, offering a rich UI to browse all test suites and cases.
 
@@ -3684,17 +3697,17 @@ This assignment focuses on configuring our Playwright E2E test job to generate a
 
 #### Why Publish JUnit Reports?
 
-  * **Merge Request Widget:** The most impactful feature for developers and reviewers. When you open a Merge Request, GitLab will display a concise summary of test results directly on the MR page. This widget highlights newly failed tests, fixed tests, and existing failures compared to the target branch, providing immediate feedback on the proposed changes.
-  * **Pipeline `Tests` Tab:** Offers a dedicated and detailed view of all test suites and individual test cases from a specific pipeline run. You can browse results, view execution times, and inspect any associated error messages or stack traces.
-  * **Faster Debugging:** Developers can quickly pinpoint which specific tests failed, click on them to view details, and get a clear picture of the failure, significantly reducing the time spent debugging.
-  * **Quality Gates:** The test report can serve as a vital quality gate. You can configure merge request settings to prevent merging if the E2E tests (or any other required tests) fail, enforcing quality standards.
-  * **Historical Data & Trends:** GitLab tracks test results over time, allowing you to observe trends in test failures, identify flaky tests, and monitor test suite performance.
+* **Merge Request Widget:** The most impactful feature for developers and reviewers. When you open a Merge Request, GitLab will display a concise summary of test results directly on the MR page. This widget highlights newly failed tests, fixed tests, and existing failures compared to the target branch, providing immediate feedback on the proposed changes.
+* **Pipeline `Tests` Tab:** Offers a dedicated and detailed view of all test suites and individual test cases from a specific pipeline run. You can browse results, view execution times, and inspect any associated error messages or stack traces.
+* **Faster Debugging:** Developers can quickly pinpoint which specific tests failed, click on them to view details, and get a clear picture of the failure, significantly reducing the time spent debugging.
+* **Quality Gates:** The test report can serve as a vital quality gate. You can configure merge request settings to prevent merging if the E2E tests (or any other required tests) fail, enforcing quality standards.
+* **Historical Data & Trends:** GitLab tracks test results over time, allowing you to observe trends in test failures, identify flaky tests, and monitor test suite performance.
 
 #### Generating a JUnit Report with Playwright
 
 Playwright includes a robust built-in `junit` reporter that can generate JUnit XML files conforming to the standard. We primarily need to configure this reporter within your Playwright project.
 
-1.  **Configure the Reporter in `playwright.config.ts`:**
+1. **Configure the Reporter in `playwright.config.ts`:**
     Open your `playwright.config.ts` file and modify or add the `reporter` property to include the `junit` reporter. Specify an `outputFile` path where the XML report will be saved.
 
     ```typescript
@@ -3720,7 +3733,7 @@ Playwright includes a robust built-in `junit` reporter that can generate JUnit X
 
     This configuration instructs Playwright to generate a JUnit XML file named `e2e-junit-report.xml` within the `test-results/` directory every time tests are executed.
 
-2.  **Ensure the Output Directory Exists (Optional but Recommended):**
+2. **Ensure the Output Directory Exists (Optional but Recommended):**
     While Playwright will usually create the directory, it's good practice to ensure the `test-results/` directory exists before tests run, or to have a `.gitignore` entry for it.
 
 #### Publishing the Report in `.gitlab-ci.yml`
@@ -3789,14 +3802,14 @@ e2e_tests:
 
 #### What Happens When This Job Executes?
 
-1.  **Job Execution:** The `e2e_tests` job initiates, pulling the specified Playwright Docker image and executing the commands in its `script` section.
-2.  **Application Startup:** Your web application server is started in the background within the CI job container.
-3.  **Test Run:** `npx playwright test` runs all your E2E tests against the locally running application.
-4.  **Report Generation:** As configured in `playwright.config.ts`, the `junit` reporter automatically generates the `e2e-junit-report.xml` file.
-5.  **Artifact Upload:** The `artifacts:` section in your `.gitlab-ci.yml` instructs GitLab to upload two types of artifacts after the job completes:
+1. **Job Execution:** The `e2e_tests` job initiates, pulling the specified Playwright Docker image and executing the commands in its `script` section.
+2. **Application Startup:** Your web application server is started in the background within the CI job container.
+3. **Test Run:** `npx playwright test` runs all your E2E tests against the locally running application.
+4. **Report Generation:** As configured in `playwright.config.ts`, the `junit` reporter automatically generates the `e2e-junit-report.xml` file.
+5. **Artifact Upload:** The `artifacts:` section in your `.gitlab-ci.yml` instructs GitLab to upload two types of artifacts after the job completes:
       * **Regular Artifacts (`paths`):** The entire `test-results/` directory (including any screenshots, video recordings, traces, and the raw XML file) is saved as a downloadable archive. This is invaluable for post-failure analysis.
       * **Report Artifacts (`reports:junit`):** Crucially, GitLab specifically parses the `test-results/e2e-junit-report.xml` file.
-6.  **GitLab UI Integration:**
+6. **GitLab UI Integration:**
       * **Merge Request:** If this pipeline is part of a Merge Request, a prominent test report widget will appear directly on the MR page, providing an immediate summary of test outcomes.
       * **Pipeline View:** A dedicated **`Tests` tab** will become available on the pipeline's details page, offering a rich, interactive UI to browse all test suites and individual test cases, their statuses, and any associated error messages.
 
@@ -3819,10 +3832,10 @@ This quiz challenges you to integrate **End-to-End (E2E) test reporting** into y
 
 Your Playwright project needs to be set up to output a JUnit XML file after test execution.
 
-1.  **Locate `playwright.config.ts`:**
+1. **Locate `playwright.config.ts`:**
     Navigate to your Playwright project's root directory and open the `playwright.config.ts` file.
 
-2.  **Add or Modify the `reporter` Property:**
+2. **Add or Modify the `reporter` Property:**
     Ensure the `reporter` array includes the `junit` reporter, specifying an `outputFile` where the XML report will be saved.
 
     ```typescript
@@ -3853,13 +3866,13 @@ Your Playwright project needs to be set up to output a JUnit XML file after test
 
 Now, you need to tell GitLab where to find this generated JUnit report.
 
-1.  **Open `.gitlab-ci.yml`:**
+1. **Open `.gitlab-ci.yml`:**
     Locate and open your project's `.gitlab-ci.yml` file.
 
-2.  **Locate Your E2E Test Job:**
+2. **Locate Your E2E Test Job:**
     Find the job responsible for running your E2E tests (e.g., `e2e_tests`).
 
-3.  **Add `artifacts:reports:junit`:**
+3. **Add `artifacts:reports:junit`:**
     Within this E2E test job, add the `artifacts:reports:junit` keyword under the `artifacts` section, pointing it to the path of the generated JUnit XML file.
 
     ```yaml
@@ -3920,7 +3933,7 @@ Now, you need to tell GitLab where to find this generated JUnit report.
 
 #### Step 3: Commit, Push, and Observe Your Pipeline
 
-1.  **Commit Your Changes:**
+1. **Commit Your Changes:**
     Save both `playwright.config.ts` and `.gitlab-ci.yml`. Commit these changes to a new feature branch.
 
     ```bash
@@ -3929,20 +3942,20 @@ Now, you need to tell GitLab where to find this generated JUnit report.
     git push origin feature/e2e-junit-report
     ```
 
-2.  **Create a Merge Request (Recommended):**
+2. **Create a Merge Request (Recommended):**
     Open a Merge Request from your `feature/e2e-junit-report` branch to `main`.
 
-3.  **Observe the Pipeline and MR Widget:**
+3. **Observe the Pipeline and MR Widget:**
 
       * **Pipeline View:** After the pipeline for your MR completes, navigate to the pipeline's detail page in GitLab. You should see a new **`Tests` tab** where you can browse the E2E test results in detail.
       * **Merge Request Widget:** On the Merge Request overview page, look for the **"Test summary" widget**. It should now display a summary of your E2E test results, including the number of passed/failed tests and any new/fixed failures compared to the target branch.
 
 **Success Criteria:**
 
-  * Your E2E test job completes successfully.
-  * The `Tests` tab appears on your pipeline's detail page, showing your E2E test results.
-  * If you created a Merge Request, the "Test summary" widget on the MR page displays the E2E test results.
-  * If you introduce a failing E2E test, the pipeline should still complete (due to `when: always` for artifacts), but the test report in GitLab should clearly indicate the failure.
+* Your E2E test job completes successfully.
+* The `Tests` tab appears on your pipeline's detail page, showing your E2E test results.
+* If you created a Merge Request, the "Test summary" widget on the MR page displays the E2E test results.
+* If you introduce a failing E2E test, the pipeline should still complete (due to `when: always` for artifacts), but the test report in GitLab should clearly indicate the failure.
 
 By successfully completing these steps, you will have mastered a fundamental aspect of CI/CD reporting, providing your team with immediate, visual feedback on the quality of your `learn-gitlab-app`'s end-to-end functionality.
 
@@ -3991,8 +4004,8 @@ export default defineConfig({
 
 **Explanation:**
 
-  * `reporter: [['junit', { outputFile: 'test-results/e2e-junit-report.xml' }]]` instructs Playwright to use the JUnit reporter.
-  * `outputFile: 'test-results/e2e-junit-report.xml'` defines the exact path and filename for the generated JUnit XML report. This path is relative to your Playwright project's root. It's common practice to place test artifacts in a dedicated directory like `test-results/`.
+* `reporter: [['junit', { outputFile: 'test-results/e2e-junit-report.xml' }]]` instructs Playwright to use the JUnit reporter.
+* `outputFile: 'test-results/e2e-junit-report.xml'` defines the exact path and filename for the generated JUnit XML report. This path is relative to your Playwright project's root. It's common practice to place test artifacts in a dedicated directory like `test-results/`.
 
 -----
 
@@ -4074,25 +4087,25 @@ e2e_tests:
 
 **Explanation of `.gitlab-ci.yml` Changes:**
 
-  * **`image: mcr.microsoft.com/playwright/node:lts-slim`**: Utilizes an official Playwright Docker image that comes pre-packaged with Node.js and the necessary browser binaries (Chromium, Firefox, WebKit). This simplifies the setup significantly as you don't need to manually install browsers.
-  * **Application Startup (`npm run start &` and `sleep`/`curl` loop)**: E2E tests require a running instance of your application. The `npm run start &` command starts your web server in the background. The subsequent `while` loop with `curl` provides a robust way to wait until your application is genuinely ready to receive requests, preventing flaky tests due to timing issues.
-  * **`npx playwright test`**: This command executes your Playwright tests. Since the JUnit reporter is configured in `playwright.config.ts`, Playwright will automatically generate the `e2e-junit-report.xml` file.
-  * **`artifacts:when: always`**: This is vital. It ensures that even if some E2E tests fail (causing the job to fail), GitLab will still upload the `test-results/` directory and process the JUnit report. Without this, you wouldn't see the failures in the GitLab UI.
-  * **`artifacts:paths: - test-results/`**: This makes the entire `test-results/` directory available as a downloadable artifact in the GitLab UI. This is incredibly useful for downloading screenshots, videos, or traces generated by Playwright for debugging.
-  * **`artifacts:reports:junit: test-results/e2e-junit-report.xml`**: This is the core instruction to GitLab. It tells GitLab to parse the specified XML file (`e2e-junit-report.xml`) as a JUnit test report. GitLab then extracts test names, statuses, durations, and error messages to populate its built-in test reporting features.
-  * **`rules:`**: Defines the conditions under which this E2E test job will run, ensuring it's triggered for relevant pipeline types (e.g., Merge Requests for pre-merge validation, and `main` branch pushes for post-merge verification).
+* **`image: mcr.microsoft.com/playwright/node:lts-slim`**: Utilizes an official Playwright Docker image that comes pre-packaged with Node.js and the necessary browser binaries (Chromium, Firefox, WebKit). This simplifies the setup significantly as you don't need to manually install browsers.
+* **Application Startup (`npm run start &` and `sleep`/`curl` loop)**: E2E tests require a running instance of your application. The `npm run start &` command starts your web server in the background. The subsequent `while` loop with `curl` provides a robust way to wait until your application is genuinely ready to receive requests, preventing flaky tests due to timing issues.
+* **`npx playwright test`**: This command executes your Playwright tests. Since the JUnit reporter is configured in `playwright.config.ts`, Playwright will automatically generate the `e2e-junit-report.xml` file.
+* **`artifacts:when: always`**: This is vital. It ensures that even if some E2E tests fail (causing the job to fail), GitLab will still upload the `test-results/` directory and process the JUnit report. Without this, you wouldn't see the failures in the GitLab UI.
+* **`artifacts:paths: - test-results/`**: This makes the entire `test-results/` directory available as a downloadable artifact in the GitLab UI. This is incredibly useful for downloading screenshots, videos, or traces generated by Playwright for debugging.
+* **`artifacts:reports:junit: test-results/e2e-junit-report.xml`**: This is the core instruction to GitLab. It tells GitLab to parse the specified XML file (`e2e-junit-report.xml`) as a JUnit test report. GitLab then extracts test names, statuses, durations, and error messages to populate its built-in test reporting features.
+* **`rules:`**: Defines the conditions under which this E2E test job will run, ensuring it's triggered for relevant pipeline types (e.g., Merge Requests for pre-merge validation, and `main` branch pushes for post-merge verification).
 
 -----
 
 #### Step 3: Verify the Solution in GitLab
 
-1.  **Commit and Push:** Commit these changes to your feature branch and push them to your GitLab repository.
-2.  **Create a Merge Request:** (Highly Recommended) Create a new Merge Request from your feature branch to your `main` branch. This will trigger an MR pipeline.
-3.  **Observe the Pipeline:**
+1. **Commit and Push:** Commit these changes to your feature branch and push them to your GitLab repository.
+2. **Create a Merge Request:** (Highly Recommended) Create a new Merge Request from your feature branch to your `main` branch. This will trigger an MR pipeline.
+3. **Observe the Pipeline:**
       * **Pipeline Overview:** Go to your project's `CI/CD > Pipelines`. Click on the running or completed pipeline.
       * **`Tests` Tab:** You should now see a **`Tests` tab** appear next to `Jobs`, `Pipeline`, etc. Click on this tab to view a detailed, browsable list of your E2E test suites and individual test cases, their status (passed/failed), and execution times.
       * **Job Log:** In the job log for `e2e_tests`, you can find a link to "Browse" the job artifacts.
-4.  **Observe the Merge Request:**
+4. **Observe the Merge Request:**
       * Navigate to your Merge Request. In the MR overview (often near the top or right sidebar), you should see a **"Test summary" widget**. This widget provides a quick overview, indicating how many tests passed, failed, were skipped, and importantly, highlights any new failures or resolved failures compared to the target branch.
 
 By following these steps, you have successfully implemented and verified the publishing of E2E JUnit reports in your GitLab CI/CD pipeline, significantly enhancing the visibility and actionability of your test results.
@@ -4118,13 +4131,9 @@ Within the export default defineConfig({ ... }) block, ensure that the reporter 
 
 TypeScript
 
-
-
 // playwright.config.tsimport { defineConfig } from '@playwright/test';export default defineConfig({
 
   // ... your existing Playwright configuration ...
-
-
 
   // Configure the test reporter(s)
 
@@ -4142,13 +4151,9 @@ TypeScript
 
   ],
 
-
-
   // Optional: You might have outputDir configured; Playwright generally creates paths for reporters.
 
   // outputDir: './test-results/',
-
-
 
   // ... rest of your Playwright configuration ...
 
@@ -4174,25 +4179,21 @@ Within this E2E test job, add or modify the artifacts section to include the rep
 
 YAML
 
+# .gitlab-ci.ymlstages
 
+* build
 
-# .gitlab-ci.ymlstages:
+* test
 
-  - build
-
-  - test
-
-  - e2e # Ensure you have an 'e2e' stage defined earlier in your stages list# ... other CI/CD jobs (e.g., for building your app, running unit tests) ...e2e_tests:
+* e2e # Ensure you have an 'e2e' stage defined earlier in your stages list# ... other CI/CD jobs (e.g., for building your app, running unit tests) ...e2e_tests:
 
   stage: e2e # Place this job in the 'e2e' stage
 
-  # Use an official Playwright Docker image that includes Node.js (or Python) and all necessary browser binaries.
+# Use an official Playwright Docker image that includes Node.js (or Python) and all necessary browser binaries
 
-  # This image helps avoid complex manual browser installations in your CI job.
+# This image helps avoid complex manual browser installations in your CI job
 
   image: mcr.microsoft.com/playwright/node:lts-slim # Or `mcr.microsoft.com/playwright/python:latest` if using Python
-
-
 
   script:
 
@@ -4264,8 +4265,6 @@ YAML
 
     - kill $APP_PID || true # `|| true` prevents the job from failing if the process is already gone
 
-
-
   artifacts:
 
     when: always # This is CRITICAL. It ensures artifacts are uploaded even if the job (due to test failures) fails.
@@ -4281,8 +4280,6 @@ YAML
       junit: test-results/e2e-junit-report.xml
 
     expire_in: 1 week # Best practice: Define an expiry for artifacts to manage storage.
-
-
 
   rules:
 
@@ -4307,8 +4304,6 @@ Commit Your Changes:
 Save both playwright.config.ts and .gitlab-ci.yml. Commit these changes to a new feature branch.
 
 Bash
-
-
 
 git add playwright.config.ts .gitlab-ci.yml
 
@@ -4337,8 +4332,6 @@ If you created a Merge Request, the "Test summary" widget on the MR page success
 (Optional, but good verification): If you intentionally make an E2E test fail, the e2e_tests job's test count in GitLab should correctly reflect the failure, and the Tests tab should indicate the failed test.
 
 By completing these steps, you have successfully implemented a professional-grade feedback loop for your E2E tests, making your CI/CD pipeline for the learn-gitlab-app significantly more transparent and effective for your development team.
-
-
 
 -----
 
@@ -4382,8 +4375,8 @@ export default defineConfig({
 
 **Explanation:**
 
-  * `reporter: [['junit', { outputFile: 'test-results/e2e-junit-report.xml' }]]` instructs Playwright to utilize its built-in JUnit reporter.
-  * `outputFile: 'test-results/e2e-junit-report.xml'` explicitly defines the path and filename where the generated JUnit XML report will be saved. It's common practice to place test-related artifacts in a dedicated directory like `test-results/`.
+* `reporter: [['junit', { outputFile: 'test-results/e2e-junit-report.xml' }]]` instructs Playwright to utilize its built-in JUnit reporter.
+* `outputFile: 'test-results/e2e-junit-report.xml'` explicitly defines the path and filename where the generated JUnit XML report will be saved. It's common practice to place test-related artifacts in a dedicated directory like `test-results/`.
 
 -----
 
@@ -4467,19 +4460,19 @@ e2e_tests:
 
 **Explanation of `.gitlab-ci.yml` Changes:**
 
-  * **`image: mcr.microsoft.com/playwright/node:lts-slim`**: This utilizes an official Playwright Docker image. These images come pre-packaged with the necessary browser binaries (Chromium, Firefox, WebKit) and Node.js (or Python), greatly simplifying the setup as you avoid manual browser installations within your CI job.
-  * **Application Startup (`npm run start &` and `curl` health check)**: E2E tests require a running instance of your application. The `npm run start &` command starts your web server in the background. The subsequent `while` loop with `curl` provides a robust and resilient way to wait until your application is fully started and responsive, preventing flaky tests due to timing issues.
-  * **`npx playwright test`**: This command executes your Playwright tests. Because the JUnit reporter is already configured in `playwright.config.ts`, Playwright will automatically generate the `e2e-junit-report.xml` file at the specified path.
-  * **`artifacts:when: always`**: This is a **critical** setting. It ensures that even if some E2E tests fail (which would typically cause the job to fail), GitLab will still upload the `test-results/` directory and, crucially, process the JUnit report. Without `when: always`, you wouldn't see the failures in the GitLab UI, making debugging harder.
-  * **`artifacts:paths: - test-results/`**: This instruction makes the entire `test-results/` folder (which includes screenshots, video recordings, traces, and the raw XML report itself) available as a downloadable artifact in the GitLab UI. This is incredibly valuable for post-failure analysis.
-  * **`artifacts:reports:junit: test-results/e2e-junit-report.xml`**: This is the **core instruction** to GitLab. It explicitly tells GitLab to parse the specified XML file (`e2e-junit-report.xml`) as a JUnit test report. GitLab then extracts all the test names, their statuses, execution durations, and any associated error messages to populate its built-in test reporting features.
-  * **`rules:`**: This section defines the conditions under which this `e2e_tests` job will execute. It's configured to run for pipelines triggered by Merge Requests (for pre-merge validation) and for pushes to the `main` branch (for post-merge verification).
+* **`image: mcr.microsoft.com/playwright/node:lts-slim`**: This utilizes an official Playwright Docker image. These images come pre-packaged with the necessary browser binaries (Chromium, Firefox, WebKit) and Node.js (or Python), greatly simplifying the setup as you avoid manual browser installations within your CI job.
+* **Application Startup (`npm run start &` and `curl` health check)**: E2E tests require a running instance of your application. The `npm run start &` command starts your web server in the background. The subsequent `while` loop with `curl` provides a robust and resilient way to wait until your application is fully started and responsive, preventing flaky tests due to timing issues.
+* **`npx playwright test`**: This command executes your Playwright tests. Because the JUnit reporter is already configured in `playwright.config.ts`, Playwright will automatically generate the `e2e-junit-report.xml` file at the specified path.
+* **`artifacts:when: always`**: This is a **critical** setting. It ensures that even if some E2E tests fail (which would typically cause the job to fail), GitLab will still upload the `test-results/` directory and, crucially, process the JUnit report. Without `when: always`, you wouldn't see the failures in the GitLab UI, making debugging harder.
+* **`artifacts:paths: - test-results/`**: This instruction makes the entire `test-results/` folder (which includes screenshots, video recordings, traces, and the raw XML report itself) available as a downloadable artifact in the GitLab UI. This is incredibly valuable for post-failure analysis.
+* **`artifacts:reports:junit: test-results/e2e-junit-report.xml`**: This is the **core instruction** to GitLab. It explicitly tells GitLab to parse the specified XML file (`e2e-junit-report.xml`) as a JUnit test report. GitLab then extracts all the test names, their statuses, execution durations, and any associated error messages to populate its built-in test reporting features.
+* **`rules:`**: This section defines the conditions under which this `e2e_tests` job will execute. It's configured to run for pipelines triggered by Merge Requests (for pre-merge validation) and for pushes to the `main` branch (for post-merge verification).
 
 -----
 
 #### Step 3: Verify the Solution in GitLab
 
-1.  **Commit and Push Your Changes:**
+1. **Commit and Push Your Changes:**
     Save both your modified `playwright.config.ts` and `.gitlab-ci.yml` files. Commit these changes to a **new feature branch** in your local Git repository and push them to your GitLab remote.
 
     ```bash
@@ -4488,20 +4481,20 @@ e2e_tests:
     git push origin feature/e2e-junit-report-solution
     ```
 
-2.  **Create a Merge Request (Highly Recommended):**
+2. **Create a Merge Request (Highly Recommended):**
     Go to your GitLab project in your web browser. Create a new Merge Request from your `feature/e2e-junit-report-solution` branch, targeting your `main` branch. This action will automatically trigger a Merge Request pipeline.
 
-3.  **Observe the Pipeline and Merge Request Test Summary:**
+3. **Observe the Pipeline and Merge Request Test Summary:**
 
       * **Pipeline View:** Navigate to your project's `CI/CD > Pipelines`. Click on the pipeline that was triggered by your Merge Request (or direct push). You should now see a distinct **`Tests` tab** (typically located next to `Jobs`, `Pipeline`, etc.). Click on this tab to explore a detailed, browsable list of your E2E test suites and individual test cases, their statuses (passed/failed), and execution times.
       * **Merge Request Widget:** Return to the overview page of your Merge Request. Look for the **"Test summary" widget** (usually prominently displayed near the top or in the right-hand sidebar). This widget will now present a concise summary of your E2E test results, critically highlighting any **new failures** or **resolved failures** that your changes introduce or fix compared to the target branch.
 
 **Solution Verification:**
 
-  * Your `e2e_tests` job in the GitLab CI/CD pipeline should complete successfully.
-  * The **`Tests` tab** must appear on your pipeline's detail page, providing a detailed breakdown of your E2E test results.
-  * If you created a Merge Request, the **"Test summary" widget** on the MR page must successfully display the E2E test results, showing the pass/fail count.
-  * (Optional, for robustness testing): If you intentionally modify an E2E test to fail, the pipeline should still complete (due to `artifacts:when: always`), but the test report in GitLab should clearly indicate the failure, allowing for quick identification and debugging.
+* Your `e2e_tests` job in the GitLab CI/CD pipeline should complete successfully.
+* The **`Tests` tab** must appear on your pipeline's detail page, providing a detailed breakdown of your E2E test results.
+* If you created a Merge Request, the **"Test summary" widget** on the MR page must successfully display the E2E test results, showing the pass/fail count.
+* (Optional, for robustness testing): If you intentionally modify an E2E test to fail, the pipeline should still complete (due to `artifacts:when: always`), but the test report in GitLab should clearly indicate the failure, allowing for quick identification and debugging.
 
 By correctly implementing and verifying these steps, you have successfully deployed a professional-grade feedback loop for your E2E tests, making your CI/CD pipeline for the `learn-gitlab-app` significantly more transparent, robust, and effective for collaborative development.
 
@@ -4519,10 +4512,11 @@ Publishing E2E JUnit reports in a CI/CD pipeline typically involves generating t
 
 Here’s a generic step-by-step guide, assuming you have a project with E2E tests that output JUnit XML reports:
 
-### Prerequisites:
+### Prerequisites
 
-1.  **E2E Tests Configured:** Your end-to-end tests (e.g., using Playwright, Cypress, Selenium, Protractor, Jest, etc.) are set up to run and produce test results in **JUnit XML format**.
+1. **E2E Tests Configured:** Your end-to-end tests (e.g., using Playwright, Cypress, Selenium, Protractor, Jest, etc.) are set up to run and produce test results in **JUnit XML format**.
       * **Example (Cypress `cypress.config.js`):**
+
         ```javascript
         const { defineConfig } = require('cypress');
 
@@ -4541,7 +4535,9 @@ Here’s a generic step-by-step guide, assuming you have a project with E2E test
           },
         });
         ```
+
       * **Example (Jest `jest.config.js` with `jest-junit`):**
+
         ```javascript
         module.exports = {
           // ... other Jest configurations
@@ -4552,25 +4548,27 @@ Here’s a generic step-by-step guide, assuming you have a project with E2E test
           }]],
         };
         ```
-2.  **CI/CD Pipeline:** You have an existing CI/CD pipeline where your E2E tests are executed.
+
+2. **CI/CD Pipeline:** You have an existing CI/CD pipeline where your E2E tests are executed.
 
 -----
 
-### Step-by-Step Instructions:
+### Step-by-Step Instructions
 
 #### Step 1: Ensure JUnit XML Report Generation
 
 Before you can publish a report, your tests must *generate* one.
 
-  * **Action:** Verify that your E2E test runner is configured to output results in JUnit XML format.
-  * **Verification:** After running your tests locally, check the specified output directory (e.g., `cypress/results` or `test-results/junit`) for `.xml` files. These files contain the test results in a standardized format that CI/CD tools can understand.
+* **Action:** Verify that your E2E test runner is configured to output results in JUnit XML format.
+* **Verification:** After running your tests locally, check the specified output directory (e.g., `cypress/results` or `test-results/junit`) for `.xml` files. These files contain the test results in a standardized format that CI/CD tools can understand.
 
 #### Step 2: Add a Test Execution Step to Your CI/CD Pipeline
 
 Your pipeline needs a step that runs your E2E tests.
 
-  * **Action:** Locate the stage/job in your CI/CD pipeline responsible for running E2E tests. Add a command that executes your tests.
-  * **Example (Node.js project running Cypress):**
+* **Action:** Locate the stage/job in your CI/CD pipeline responsible for running E2E tests. Add a command that executes your tests.
+* **Example (Node.js project running Cypress):**
+
     ```yaml
     # For GitLab CI/CD (.gitlab-ci.yml)
     e2e_tests:
@@ -4585,7 +4583,9 @@ Your pipeline needs a step that runs your E2E tests.
         reports:
           junit: cypress/results/junit-*.xml # Specify JUnit report for GitLab
     ```
-      * **Example (GitHub Actions - `.github/workflows/main.yml`):**
+
+  * **Example (GitHub Actions - `.github/workflows/main.yml`):**
+
         ```yaml
         # ...
         jobs:
@@ -4612,29 +4612,31 @@ Your pipeline needs a step that runs your E2E tests.
                   list-tests: true
                   max-annotations: 10
         ```
-  * **Important:** Ensure the command executed here is the one that triggers your E2E tests and produces the JUnit XML output.
+
+* **Important:** Ensure the command executed here is the one that triggers your E2E tests and produces the JUnit XML output.
 
 #### Step 3: Configure Artifact Collection (Optional but Recommended)
 
 It's good practice to collect the raw JUnit XML files as pipeline artifacts. This allows you to download and inspect them later if needed.
 
-  * **Action:** In your CI/CD pipeline configuration, add a step or configure the test execution step to store the JUnit XML files as artifacts.
-  * **Path:** Specify the exact directory and file pattern where your JUnit XML files are generated (e.g., `cypress/results/*.xml`, `test-results/junit/*.xml`).
+* **Action:** In your CI/CD pipeline configuration, add a step or configure the test execution step to store the JUnit XML files as artifacts.
+* **Path:** Specify the exact directory and file pattern where your JUnit XML files are generated (e.g., `cypress/results/*.xml`, `test-results/junit/*.xml`).
 
 #### Step 4: Add a Test Report Publishing Step
 
 This is the core step for making the report visible in your CI/CD tool's UI.
 
-  * **Action:** Add a dedicated step or parameter within your CI/CD pipeline configuration that specifically handles JUnit test reports.
+* **Action:** Add a dedicated step or parameter within your CI/CD pipeline configuration that specifically handles JUnit test reports.
 
-  * **Configuration:** You will typically point this step to the directory and file pattern where your JUnit XML reports are located.
+* **Configuration:** You will typically point this step to the directory and file pattern where your JUnit XML reports are located.
 
-  * **Common CI/CD Tool Examples:**
+* **Common CI/CD Tool Examples:**
 
-      * **Jenkins:**
+  * **Jenkins:**
 
-          * Install the "JUnit Plugin".
-          * In your Pipeline script (Jenkinsfile):
+    * Install the "JUnit Plugin".
+    * In your Pipeline script (Jenkinsfile):
+
             ```groovy
             stage('Publish E2E Report') {
                 steps {
@@ -4642,22 +4644,26 @@ This is the core step for making the report visible in your CI/CD tool's UI.
                 }
             }
             ```
-          * For Freestyle projects, add a "Publish JUnit test result report" post-build action.
 
-      * **GitLab CI/CD:**
+    * For Freestyle projects, add a "Publish JUnit test result report" post-build action.
 
-          * Use the `reports:junit` keyword in your `.gitlab-ci.yml`:
+  * **GitLab CI/CD:**
+
+    * Use the `reports:junit` keyword in your `.gitlab-ci.yml`:
+
             ```yaml
             # ... (as shown in Step 2 example)
             artifacts:
               reports:
                 junit: cypress/results/junit-*.xml
             ```
-          * GitLab will automatically parse these and display them under "Test Summary" in the pipeline view.
 
-      * **GitHub Actions:**
+    * GitLab will automatically parse these and display them under "Test Summary" in the pipeline view.
 
-          * While GitHub Actions has basic test result visualization, using a third-party action like `dorny/test-reporter@v1` is common for richer reports:
+  * **GitHub Actions:**
+
+    * While GitHub Actions has basic test result visualization, using a third-party action like `dorny/test-reporter@v1` is common for richer reports:
+
             ```yaml
             # ... (as shown in Step 2 example)
             - name: Publish Test Results to GitHub Actions
@@ -4669,9 +4675,10 @@ This is the core step for making the report visible in your CI/CD tool's UI.
                 reporter: jest-junit # Or 'mocha-junit-reporter', 'cypress-junit-reporter' etc.
             ```
 
-      * **Azure DevOps:**
+  * **Azure DevOps:**
 
-          * Use the `PublishTestResults` task:
+    * Use the `PublishTestResults` task:
+
             ```yaml
             - task: PublishTestResults@2
               inputs:
@@ -4682,29 +4689,188 @@ This is the core step for making the report visible in your CI/CD tool's UI.
               displayName: 'Publish E2E Test Results'
             ```
 
-      * **CircleCI:**
+  * **CircleCI:**
 
-          * Use the `store_test_results` step:
+    * Use the `store_test_results` step:
+
             ```yaml
             - store_test_results:
                 path: cypress/results # Or your specific path containing XMLs
             ```
-          * CircleCI will automatically detect and parse JUnit XML files in the specified path.
+
+    * CircleCI will automatically detect and parse JUnit XML files in the specified path.
 
 #### Step 5: Run the Pipeline and Review the Report
 
-  * **Action:** Trigger a new run of your CI/CD pipeline.
-  * **Verification:**
-      * Once the pipeline completes (or reaches the test publishing step), navigate to the pipeline run's details page in your CI/CD tool.
-      * Look for a "Tests," "Test Summary," "Test Results," or similar tab/section.
-      * You should see a summary of your E2E test results, including passed, failed, and skipped tests, along with details for each test case.
+* **Action:** Trigger a new run of your CI/CD pipeline.
+* **Verification:**
+  * Once the pipeline completes (or reaches the test publishing step), navigate to the pipeline run's details page in your CI/CD tool.
+  * Look for a "Tests," "Test Summary," "Test Results," or similar tab/section.
+  * You should see a summary of your E2E test results, including passed, failed, and skipped tests, along with details for each test case.
 
 -----
 
 By following these steps, you can effectively publish your E2E JUnit reports in your CI/CD pipeline, providing valuable visibility into the health and stability of your end-to-end tests. Remember to consult the specific documentation for your CI/CD tool for exact syntax and advanced configuration options.
 
+-----
 
+### Quiz 12: Publishing the E2E JUnit Report - Step-by-Step Instructions
 
+This quiz is designed to guide you through the process of integrating **End-to-End (E2E) test reporting** into your GitLab CI/CD pipeline. Your goal is to configure your Playwright tests to generate a **JUnit XML report** and then instruct GitLab to parse and display these results directly in the Merge Request and Pipeline views. This enhancement provides immediate, visual, and actionable feedback on the quality of your application.
 
+**Objective:** Successfully run Playwright E2E tests and publish their JUnit report to GitLab CI/CD.
 
+-----
 
+#### Step 1: Configure Playwright to Generate JUnit XML Report
+
+The first critical step is to tell Playwright to output its test results in the standard JUnit XML format. This is done within your Playwright project's configuration file.
+
+1.  **Locate `playwright.config.ts`:**
+    Open the `playwright.config.ts` file located in the root of your Playwright test project (or wherever you have configured it).
+
+2.  **Modify the `reporter` Property:**
+    Within the `export default defineConfig({ ... })` block, ensure that the `reporter` array includes the `junit` reporter configuration. If it's already there, verify the `outputFile` path. If not, add it.
+
+    ```typescript
+    // playwright.config.ts
+    import { defineConfig } from '@playwright/test';
+
+    export default defineConfig({
+      // ... your existing Playwright configuration ...
+
+      // Configure the test reporter(s)
+      reporter: [
+        ['list'], // This provides standard console output during test runs (optional, but good for local debugging)
+        // Add or ensure this line exists:
+        // This tells Playwright to generate a JUnit XML report.
+        // The `outputFile` specifies the exact path relative to your project root where the XML file will be saved.
+        ['junit', { outputFile: 'test-results/e2e-junit-report.xml' }],
+      ],
+
+      // Optional: You might have outputDir configured; Playwright generally creates paths for reporters.
+      // outputDir: './test-results/',
+
+      // ... rest of your Playwright configuration ...
+    });
+    ```
+
+      * **Purpose:** This configuration ensures that every time Playwright tests are run (e.g., via `npx playwright test`), a JUnit XML report named `e2e-junit-report.xml` will be created inside the `test-results/` directory. This is the file GitLab will consume.
+
+-----
+
+#### Step 2: Update Your `.gitlab-ci.yml` to Publish the Report
+
+Next, you need to inform GitLab CI/CD about the existence and location of this JUnit report so it can be parsed and displayed in the UI.
+
+1.  **Open `.gitlab-ci.yml`:**
+    Locate and open your project's main GitLab CI/CD configuration file, `.gitlab-ci.yml`.
+
+2.  **Identify or Create Your E2E Test Job:**
+    Find the job that is responsible for running your Playwright E2E tests (e.g., named `e2e_tests`). If you don't have one yet, create it, ensuring it's in an appropriate stage (e.g., `e2e` or `test`).
+
+3.  **Add `artifacts:reports:junit` Configuration:**
+    Within this E2E test job, add or modify the `artifacts` section to include the `reports:junit` keyword, pointing to the exact path of the JUnit XML file generated in Step 1.
+
+    ```yaml
+    # .gitlab-ci.yml
+
+    stages:
+      - build
+      - test
+      - e2e # Ensure you have an 'e2e' stage defined earlier in your stages list
+
+    # ... other CI/CD jobs (e.g., for building your app, running unit tests) ...
+
+    e2e_tests:
+      stage: e2e # Place this job in the 'e2e' stage
+      # Use an official Playwright Docker image that includes Node.js (or Python) and all necessary browser binaries.
+      # This image helps avoid complex manual browser installations in your CI job.
+      image: mcr.microsoft.com/playwright/node:lts-slim # Or `mcr.microsoft.com/playwright/python:latest` if using Python
+
+      script:
+        - echo "--- Installing Application Dependencies ---"
+        - npm install # Or `pip install -r requirements.txt` for Python projects. Installs your app's dependencies.
+
+        - echo "--- Starting the Application for E2E Tests ---"
+        # This command needs to start your web application's server in the background.
+        # It is crucial that your application is fully running and accessible before Playwright tests begin.
+        - npm run start & # Example: `npm run start &` for a Node.js web server. Adjust as per your app's start command.
+        - APP_PID=$! # Capture the Process ID of the background app for later termination.
+
+        - echo "--- Waiting for Application to be Ready ---"
+        # Implement a robust wait loop for your application to become available.
+        # Replace `http://localhost:3000/health` with your application's actual health check endpoint and port.
+        - | # Use a multi-line script for a more robust waiting mechanism
+          ATTEMPTS=0
+          MAX_ATTEMPTS=30 # Attempt to connect for up to 30 seconds
+          while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+            if curl --fail http://localhost:3000/health; then # `curl --fail` exits with 0 on success, non-zero on failure
+              echo "Application is ready!"
+              break # Exit the loop if app is ready
+            fi
+            echo "Application not ready yet, waiting... ($((ATTEMPTS + 1))/$MAX_ATTEMPTS)"
+            sleep 1 # Wait for 1 second before retrying
+            ATTEMPTS=$((ATTEMPTS + 1))
+          done
+          # After the loop, perform a final check. If it still fails, exit the job with an error.
+          curl --fail http://localhost:3000/health || { echo "ERROR: Application failed to start within the timeout!"; exit 1; }
+
+        - echo "--- Running Playwright E2E Tests ---"
+        # Execute your Playwright tests. Playwright will generate the JUnit report as configured in playwright.config.ts.
+        - npx playwright test
+
+        - echo "--- Terminating Background Application Process ---"
+        # Gracefully stop the application process after tests have completed.
+        - kill $APP_PID || true # `|| true` prevents the job from failing if the process is already gone
+
+      artifacts:
+        when: always # This is CRITICAL. It ensures artifacts are uploaded even if the job (due to test failures) fails.
+        paths:
+          - test-results/ # Specifies the directory to upload. This will include screenshots, videos, traces, and the raw XML file.
+        reports:
+          # THIS IS THE KEY LINE: Tells GitLab to parse this specific XML file as a JUnit test report.
+          junit: test-results/e2e-junit-report.xml
+        expire_in: 1 week # Best practice: Define an expiry for artifacts to manage storage.
+
+      rules:
+        # Define the conditions under which this E2E test job should execute.
+        # Typically, E2E tests are run for Merge Requests (for pre-merge validation)
+        # and for pushes to the main branch (for post-merge verification).
+        - if: '$CI_COMMIT_BRANCH == "main"'
+          when: on_success # Run when changes are merged into the 'main' branch
+        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+          when: on_success # Run specifically for pipelines triggered by a Merge Request
+    ```
+
+-----
+
+#### Step 3: Commit, Push, and Verify Your Pipeline Results
+
+1.  **Commit Your Changes:**
+    Save both `playwright.config.ts` and `.gitlab-ci.yml`. Commit these changes to a **new feature branch**.
+
+    ```bash
+    git add playwright.config.ts .gitlab-ci.yml
+    git commit -m "feat(ci): Configure E2E tests to publish JUnit report"
+    git push origin feature/e2e-junit-report-solution
+    ```
+
+2.  **Create a Merge Request (Highly Recommended):**
+    Go to your GitLab repository in your web browser and create a new Merge Request from your `feature/e2e-junit-report-solution` branch targeting your `main` branch. This will trigger a Merge Request pipeline.
+
+3.  **Observe the Pipeline and MR Test Summary:**
+
+      * **Pipeline View:** Navigate to your project's `CI/CD > Pipelines`. Click on the running or completed pipeline associated with your MR. You should now see a prominent **`Tests` tab** (often next to `Jobs`, `Pipeline`, etc.). Click this tab to view a detailed, browsable list of your E2E test suites and individual test cases, their status (passed/failed), and execution times.
+      * **Merge Request Widget:** Return to your Merge Request overview page. Look for the **"Test summary" widget** (usually near the top or in the right sidebar). This widget will now display a concise summary of your E2E test results, highlighting any new failures or resolved failures compared to the target branch.
+
+**Quiz Success Criteria:**
+
+  * Your `e2e_tests` job in GitLab CI/CD completes successfully.
+  * The **`Tests` tab** appears on your pipeline's detail page, providing a detailed breakdown of your E2E test results.
+  * If you created a Merge Request, the **"Test summary" widget** on the MR page successfully displays the E2E test results.
+  * (Optional, but good verification): If you intentionally make an E2E test fail, the pipeline should still complete (due to `when: always` for artifacts), but the test report in GitLab should correctly indicate the failure, allowing for quick identification and debugging.
+
+By completing these steps, you have successfully mastered a fundamental aspect of CI/CD reporting, providing your team with immediate, visual feedback on the quality of your `learn-gitlab-app`'s end-to-end functionality.
+
+-----
