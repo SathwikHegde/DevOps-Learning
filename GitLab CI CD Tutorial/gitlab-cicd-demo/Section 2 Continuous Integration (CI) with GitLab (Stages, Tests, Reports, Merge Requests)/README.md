@@ -5040,4 +5040,139 @@ e2e_tests:
 By correctly implementing and verifying these steps, you have successfully deployed a professional-grade feedback loop for your E2E tests, making your CI/CD pipeline for the `learn-gitlab-app` significantly more transparent, robust, and effective for collaborative development.
 
 -----
+-----
+
+### Publishing an HTML Report: Visualizing Complex Test Results in GitLab
+
+While JUnit XML reports are excellent for structured test results that GitLab can parse and display natively, sometimes you need a more comprehensive or visually rich way to present test outcomes, code coverage, or other analysis. This is where **publishing an HTML report** comes into play.
+
+By generating an HTML report (e.g., from Playwright, Jest, Cypress, or a code coverage tool) and configuring it as a **GitLab Page artifact**, you can make these detailed, interactive reports directly accessible from your Merge Request and pipeline views, providing a deeper level of insight.
+
+#### Why Publish HTML Reports?
+
+  * **Rich Visualizations:** HTML reports can contain graphs, charts, detailed step-by-step breakdowns, embedded screenshots/videos (beyond what JUnit offers), and interactive elements.
+  * **Comprehensive Details:** They can include more context than simple pass/fail: code coverage percentages, performance metrics, security scan findings, and more granular test execution logs.
+  * **Enhanced Debugging:** Provides a "single source of truth" for debugging by consolidating all relevant information in one easy-to-navigate interface.
+  * **Customizable Content:** You have full control over the content and styling of the report, allowing for highly tailored presentations.
+  * **Direct Access:** GitLab provides a direct link to the published HTML report, making it instantly available to anyone viewing the pipeline or Merge Request.
+
+#### How to Publish an HTML Report in GitLab CI/CD
+
+Publishing an HTML report involves two main steps:
+
+1.  **Generating the HTML Report:** Your testing or analysis tool must be configured to output its results as one or more HTML files (often within a specific directory).
+2.  **Configuring GitLab CI/CD to Serve the Report:** You use GitLab's `artifacts` keyword, specifically with `expose_as` and `pages`, to make the HTML report accessible via a dedicated URL.
+
+**Example: Publishing a Playwright HTML Report**
+
+Playwright's default HTML reporter generates a fantastic interactive report.
+
+**1. Playwright Configuration (`playwright.config.ts`)**
+
+Ensure your Playwright configuration is set to use the `html` reporter (this is Playwright's default, so it might already be there).
+
+```typescript
+// playwright.config.ts
+import { defineConfig } from '@playwright/test';
+
+export default defineConfig({
+  // ... other configurations ...
+
+  // Configure the HTML reporter
+  reporter: [
+    ['list'], // Keep this for console output
+    ['html', { open: 'never', outputFolder: 'playwright-report' }], // <-- Ensure this line is present
+  ],
+
+  // Specify the output directory for test results (where screenshots, videos, etc., go)
+  outputDir: 'test-results/', // This directory will also contain generated HTML report data
+
+  // ... rest of your Playwright config ...
+});
+```
+
+  * `outputFolder: 'playwright-report'` tells Playwright where to put the generated HTML files. This will be the root directory you expose.
+  * `open: 'never'` prevents Playwright from trying to open the report in a browser after a local run, which isn't useful in CI.
+
+**2. GitLab CI/CD Configuration (`.gitlab-ci.yml`)**
+
+You'll modify your E2E test job to include an `artifacts` section that specifies the HTML report.
+
+```yaml
+# .gitlab-ci.yml
+
+stages:
+  - build
+  - test
+  - e2e # Your E2E test stage
+  - deploy # Potentially, if you want reports visible in environments
+
+# ... (other jobs) ...
+
+e2e_tests:
+  stage: e2e
+  image: mcr.microsoft.com/playwright/node:lts-slim
+  script:
+    - echo "--- Installing Application Dependencies ---"
+    - npm install
+
+    - echo "--- Starting the Application for E2E Tests ---"
+    - npm run start & # Start your app in the background
+    - APP_PID=$!
+    - echo "Waiting for app to be ready..."
+    # Robust health check loop
+    - |
+      ATTEMPTS=0
+      MAX_ATTEMPTS=30
+      while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+        if curl --fail http://localhost:3000/health; then echo "App ready!"; break; fi
+        echo "Waiting for app... ($((ATTEMPTS + 1))/$MAX_ATTEMPTS)"
+        sleep 1
+        ATTEMPTS=$((ATTEMPTS + 1))
+      done
+      curl --fail http://localhost:3000/health || { echo "ERROR: App failed to start!"; exit 1; }
+
+    - echo "--- Running Playwright E2E Tests ---"
+    # This command generates the HTML report in 'playwright-report/'
+    - npx playwright test
+
+    - echo "--- Terminating Background Application Process ---"
+    - kill $APP_PID || true
+
+  artifacts:
+    when: always # Always upload artifacts, even if the job fails
+    expire_in: 1 week # Clean up old artifacts
+    paths:
+      - playwright-report/ # IMPORTANT: This path must contain the `index.html` file
+      - test-results/ # Include other test artifacts (screenshots, videos, traces)
+
+    # --- Publishing the HTML report as a browsable link ---
+    reports:
+      # Optional: Also publish a JUnit report for native GitLab integration
+      junit: test-results/e2e-junit-report.xml
+    expose_as: 'Playwright Report' # The label that appears in the MR widget/pipeline UI
+    public: true # Make the artifact publicly accessible if your project allows
+    # GitLab Pages-like configuration for Browse HTML.
+    # The artifact will be hosted by GitLab and a link provided.
+    # The `playwright-report/` directory MUST contain an `index.html` file at its root.
+
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: on_success
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: on_success
+```
+
+#### Key Considerations for HTML Reports
+
+  * **`artifacts:paths`**: You *must* include the directory containing your HTML report (e.g., `playwright-report/`) here. This tells GitLab to upload those files.
+  * **`artifacts:expose_as`**: This provides a user-friendly label that will appear in the Merge Request widget and pipeline overview.
+  * **`artifacts:public: true`**: (Optional) If your project is public or if you want the report accessible without GitLab login, set this to `true`. Be cautious with sensitive information.
+  * **`index.html`**: The exposed directory (`playwright-report/` in this example) **must contain an `index.html` file at its root**. GitLab Pages and the artifact browser rely on this. Playwright's HTML report typically generates this automatically.
+  * **Accessibility:** Once the pipeline runs, you'll see a link on the Merge Request page (in the `Jobs` or `Tests` widget area) and on the pipeline details page, under the `Job artifacts` section, labeled "View Playwright Report" (or whatever you set for `expose_as`). Clicking this will open your interactive HTML report.
+  * **Storage:** HTML reports, especially with embedded media like screenshots/videos, can be large. Use `expire_in` to manage artifact storage.
+
+By publishing HTML reports, you provide your team with deeper, more actionable insights into your `learn-gitlab-app`'s quality and performance, going beyond simple pass/fail statuses.
+
+-----
 
