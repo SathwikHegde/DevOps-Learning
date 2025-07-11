@@ -5175,4 +5175,60 @@ e2e_tests:
 By publishing HTML reports, you provide your team with deeper, more actionable insights into your `learn-gitlab-app`'s quality and performance, going beyond simple pass/fail statuses.
 
 -----
+---
 
+### Quiz 13: End-to-End Testing in GitLab CI/CD
+
+This quiz is designed to challenge your understanding and practical implementation of End-to-End (E2E) testing within a GitLab CI/CD pipeline. E2E tests are vital for verifying the complete user experience, ensuring that all components of your application—from the front-end to the back-end and database—work together seamlessly.
+
+By completing this quiz, you will demonstrate proficiency in configuring a CI/CD job to run E2E tests, managing the application environment during testing, and publishing comprehensive test reports.
+
+---
+
+#### 1. Setup and Environment
+
+**Objective:** Configure your GitLab CI/CD pipeline to run E2E tests using a modern framework (e.g., Playwright, Cypress, Selenium).
+
+* **Task A: Selecting a CI Image:**
+    * Identify and use an appropriate Docker image for your E2E tests. This image must include the necessary runtime (e.g., Node.js, Python) and the required browser binaries (e.g., Chromium, Firefox).
+* **Task B: Running the Application:**
+    * In your CI job's `script` section, implement a method to start your application's web server in the background.
+    * Crucially, implement a robust mechanism (e.g., a health check loop using `curl` or similar, rather than just `sleep`) to ensure the application is fully running and responsive *before* the E2E tests begin.
+* **Task C: Running the Tests:**
+    * Execute the E2E test suite against the running application instance. Ensure the test command is configured to use the appropriate base URL (usually `http://localhost:PORT` within the CI container).
+
+#### 2. Artifacts and Reporting
+
+**Objective:** Configure the E2E test job to publish actionable test results and comprehensive reports to GitLab.
+
+* **Task D: Generating a JUnit XML Report:**
+    * Configure your E2E testing framework to output a report in the standard JUnit XML format (e.g., `e2e-report.xml`).
+* **Task E: Publishing the JUnit Report:**
+    * In your `.gitlab-ci.yml`, use the `artifacts:reports:junit` keyword to upload the JUnit XML report to GitLab.
+    * Ensure that this artifact is uploaded even if the tests fail.
+* **Task F: Publishing an HTML Report:**
+    * Configure your testing framework to generate a comprehensive, interactive HTML report (e.g., Playwright's HTML Report).
+    * Configure your GitLab CI job to upload the HTML report directory as an artifact, making it viewable in the GitLab UI.
+
+#### 3. Pipeline Integration and Optimization
+
+**Objective:** Integrate the E2E tests into a realistic pipeline workflow and ensure efficient execution.
+
+* **Task G: Defining Job Rules:**
+    * Use `rules:` or `only/except` to ensure the E2E test job runs only under specific conditions (e.g., for `merge_request_event` pipelines and `main` branch pushes), as E2E tests are often slower than unit tests.
+* **Task H: Clean Up (Optional but Recommended):**
+    * Implement a method to gracefully stop the background application process after the E2E tests have completed, ensuring the CI job exits cleanly.
+    * Configure the artifacts to expire after a reasonable time frame (e.g., one week) to manage storage.
+
+---
+
+#### Verification
+
+Upon successful completion of the quiz, your GitLab CI pipeline should demonstrate the following:
+
+1.  The E2E test job successfully starts your application, runs the tests, and completes.
+2.  A **"Tests" tab** is visible on the pipeline details page, displaying the parsed JUnit report.
+3.  The Merge Request widget shows a summary of E2E test results (if the pipeline was triggered by an MR).
+4.  The generated HTML report is accessible via the "Browse" or "View" artifact links in the CI job details.
+
+---
