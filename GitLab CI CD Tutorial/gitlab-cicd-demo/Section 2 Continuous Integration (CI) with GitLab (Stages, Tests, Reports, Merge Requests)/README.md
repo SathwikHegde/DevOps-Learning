@@ -5232,3 +5232,139 @@ Upon successful completion of the quiz, your GitLab CI pipeline should demonstra
 4.  The generated HTML report is accessible via the "Browse" or "View" artifact links in the CI job details.
 
 ---
+-----
+
+### Setting a Build Version: Tracking and Identifying Your Software Releases
+
+In any mature software development lifecycle, assigning a unique and meaningful **build version** to each release is fundamental. A build version acts as a distinct identifier for a specific compilation or deployment of your application, providing crucial traceability and helping you manage releases, debug issues, and communicate changes effectively.
+
+For your `learn-gitlab-app`, implementing a robust build versioning strategy within your GitLab CI/CD pipeline is a key practice.
+
+#### Why is Build Versioning Important?
+
+  * **Traceability:** Quickly identify which specific code commit, feature, or bug fix is included in a deployed application. This is invaluable for debugging issues reported from a specific environment.
+  * **Release Management:** Clearly distinguish between different deployments (e.g., "v1.2.3-staging" vs. "v1.2.3-production").
+  * **Customer Support:** When a user reports a bug, knowing the exact version they are using helps support teams and developers pinpoint the issue quickly.
+  * **Deployment Rollbacks:** If a deployment introduces a critical bug, a clear version number makes it easy to identify and roll back to a known stable version.
+  * **Communication:** Provides a standardized way to communicate the current state of the software to stakeholders, QA, and other teams.
+
+#### Common Build Versioning Strategies
+
+While there are many approaches, here are some widely used strategies that can be implemented in GitLab CI/CD:
+
+1.  **Semantic Versioning (SemVer): `MAJOR.MINOR.PATCH`**
+
+      * **Concept:** A widely adopted standard where:
+          * `MAJOR` changes when you make incompatible API changes.
+          * `MINOR` changes when you add functionality in a backward-compatible manner.
+          * `PATCH` changes when you make backward-compatible bug fixes.
+      * **CI/CD Integration:** Often combined with a build number or Git SHA for uniqueness within a patch/minor release.
+      * **Example:** `1.0.0`, `1.0.1` (bug fix), `1.1.0` (new feature), `2.0.0` (breaking change).
+
+2.  **Git SHA (Short or Full Commit Hash)**
+
+      * **Concept:** Uses the unique hash of the Git commit from which the build was created. This provides perfect traceability directly back to the source code.
+      * **CI/CD Integration:** GitLab CI/CD provides `$CI_COMMIT_SHORT_SHA` and `$CI_COMMIT_SHA` variables.
+      * **Example:** `abc1234f`, `8765fedc`.
+      * **Pros:** Highly accurate, always unique.
+      * **Cons:** Not human-readable or easily incremented for release notes. Often combined with other methods.
+
+3.  **Build Number/Pipeline ID**
+
+      * **Concept:** Uses a sequentially incrementing number, often provided by the CI/CD system itself.
+      * **CI/CD Integration:** GitLab CI/CD provides `$CI_PIPELINE_IID` (instance ID, unique across project) or `$CI_JOB_ID`.
+      * **Example:** `build-1234`, `release-5678`.
+      * **Pros:** Easy to understand, simple to implement.
+      * **Cons:** Doesn't directly reflect code changes or semantic meaning.
+
+4.  **Date-Based Versioning (`YYYYMMDD.HHMM` or `YYYY.MM.DD.BuildNumber`)**
+
+      * **Concept:** Useful for continuous delivery where releases are frequent and time-based.
+      * **CI/CD Integration:** Generate using `date` command in the script.
+      * **Example:** `20250711.1`, `2025.07.11.123`.
+
+#### Implementing Build Versioning in GitLab CI/CD
+
+The goal is to generate a version string in a CI/CD job and then make it available to subsequent jobs or the application itself.
+
+**Method 1: Using GitLab Predefined Variables (Simplest)**
+
+For basic traceability, the predefined variables are often sufficient.
+
+```yaml
+build_and_tag:
+  stage: build
+  image: docker:latest
+  script:
+    - export APP_VERSION="v1.0.0-${CI_COMMIT_SHORT_SHA}" # Simple combination
+    - echo "Building image with version: ${APP_VERSION}"
+    - docker build -t my-app:${APP_VERSION} .
+    - docker push my-app:${APP_VERSION}
+    - echo "Built and pushed my-app:${APP_VERSION}"
+    # Example: Inject into application at build time (e.g., for Node.js using webpack or env files)
+    # - echo "export const VERSION = '${APP_VERSION}';" > src/version.ts
+  # To pass this APP_VERSION to downstream jobs:
+  artifacts:
+    reports:
+      dotenv: build_version.env # See "Passing data between jobs" if APP_VERSION needs to be known by other jobs
+    paths:
+      - build_version.env
+```
+
+**Method 2: Combining Strategies with `dotenv` (Recommended for Flexibility)**
+
+This approach allows you to construct a custom version string and pass it to subsequent jobs.
+
+```yaml
+stages:
+  - build
+  - deploy
+
+get_build_version:
+  stage: build
+  image: alpine/git:latest # A lean image for simple scripting
+  script:
+    # Get current date for version
+    - BUILD_DATE=$(date +%Y%m%d%H%M)
+    # Combine semantic version, Git short SHA, and pipeline ID
+    # Assume your project adheres to SemVer, or fetch from package.json/project file
+    - SEMVER="1.0.0" # This could be fetched dynamically from package.json `jq -r .version package.json`
+    - APP_BUILD_VERSION="${SEMVER}-${CI_COMMIT_SHORT_SHA}-${CI_PIPELINE_IID}"
+
+    - echo "Calculated APP_BUILD_VERSION: ${APP_BUILD_VERSION}"
+
+    # Make the version available to downstream jobs
+    - echo "APP_BUILD_VERSION=${APP_BUILD_VERSION}" > build_version.env
+
+  artifacts:
+    reports:
+      dotenv: build_version.env # Publish the variable
+    expire_in: 1 hour
+
+build_docker_image:
+  stage: deploy
+  image: docker:latest
+  services:
+    - docker:dind
+  needs: ["get_build_version"] # Ensure this job waits for get_build_version to complete and pass its vars
+  script:
+    - echo "Building Docker image for version: ${APP_BUILD_VERSION}"
+    - docker build -t my-app:${APP_BUILD_VERSION} .
+    - docker push my-app:${APP_BUILD_VERSION}
+    - echo "Docker image my-app:${APP_BUILD_VERSION} pushed successfully."
+```
+
+#### Injecting the Build Version into Your Application
+
+Once you have your build version string in the CI/CD environment, you can inject it into your application in various ways:
+
+  * **Environment Variables (Runtime):** Pass the `APP_BUILD_VERSION` as an environment variable to your Docker container or deployment environment. Your application code can then read this variable at runtime.
+  * **Build-Time Injection:**
+      * **Frontend (JS/TS):** Use build tools (Webpack, Vite, Rollup) to inject the version directly into your JavaScript bundle as a constant.
+      * **Backend (e.g., Python, Java):** Write the version to a configuration file that's bundled with the application, or use build system plugins (e.g., Maven, Gradle) to inject it.
+  * **Docker Labels:** Add the `APP_BUILD_VERSION` as a Docker label to your image for easy inspection.
+      * `docker build --label org.opencontainers.image.version=${APP_BUILD_VERSION} -t my-app:${APP_BUILD_VERSION} .`
+
+By implementing a clear and automated build versioning strategy, you empower your `learn-gitlab-app` to be more manageable, traceable, and debuggable throughout its lifecycle.
+
+-----
