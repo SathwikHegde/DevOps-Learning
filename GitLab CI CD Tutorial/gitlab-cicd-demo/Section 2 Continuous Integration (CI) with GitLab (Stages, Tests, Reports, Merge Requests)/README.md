@@ -5954,3 +5954,96 @@ Execute your pipeline to ensure everything is set up correctly.
 By following these steps, you've successfully published your HTML test reports, providing a rich, visual, and interactive way to review your E2E test results directly from your CI/CD pipeline\!
 
 
+---
+
+### Quiz 14: CI/CD Recap - Consolidating Your GitLab Pipeline Mastery
+
+Congratulations on making it to Quiz 14! This is your opportunity to consolidate all the CI/CD knowledge you've gained throughout the `learn-gitlab-app` journey. This quiz is designed as a comprehensive recap, challenging you to integrate various concepts into a single, cohesive, and effective GitLab CI/CD pipeline.
+
+By successfully completing this quiz, you will demonstrate a strong understanding of modern CI/CD practices and how to implement them within GitLab.
+
+---
+
+#### Overall Objective
+
+Your goal is to build a robust, well-structured, and fully featured CI/CD pipeline for the `learn-gitlab-app` that encompasses:
+* Efficient build processes.
+* Comprehensive automated testing with rich reporting.
+* Flexible environment management (dynamic and static).
+* Clear versioning and data flow between jobs.
+* Adherence to best practices for maintainability and observability.
+
+---
+
+#### Section 1: Pipeline Fundamentals & Structure
+
+* **Task A: Define Comprehensive Stages:**
+    * Ensure your `.gitlab-ci.yml` clearly defines a logical sequence of stages. At minimum, consider stages like `build`, `test`, `e2e`, `deploy_review`, `deploy_staging`, and `deploy_production`.
+* **Task B: Structure Jobs Logically:**
+    * Organize your jobs within their respective stages, ensuring a clear flow of operations (e.g., `build_artifact`, `run_unit_tests`, `run_e2e_tests`, `deploy_review_app`).
+* **Task C: Utilize `needs` for Dependencies:**
+    * Where appropriate, use the `needs:` keyword to explicitly define job dependencies that cross stage boundaries or optimize parallel execution.
+* **Task D: Select Optimized Docker Images:**
+    * For each job, choose the most lightweight and appropriate Docker image that contains only the necessary tools (e.g., `node:lts-slim`, `mcr.microsoft.com/playwright/node:lts-slim`, `docker:latest`).
+
+#### Section 2: Variable Management & Data Flow
+
+* **Task E: Leverage Predefined Variables:**
+    * Demonstrate the use of at least three different GitLab predefined CI/CD variables (e.g., `$CI_COMMIT_SHORT_SHA`, `$CI_PIPELINE_IID`, `$CI_COMMIT_BRANCH`) in your jobs.
+* **Task F: Implement Custom Variables:**
+    * Define at least one custom variable at the project, group, or job level.
+* **Task G: Pass Data Between Jobs using `dotenv`:**
+    * Create a job that dynamically generates a value (e.g., a full application version string combining a static version, Git SHA, and pipeline ID).
+    * Use `artifacts:reports:dotenv` to expose this variable to subsequent jobs, and demonstrate its use in a downstream job.
+
+#### Section 3: Comprehensive Testing & Reporting
+
+* **Task H: Run Unit Tests (Conceptual):**
+    * Include a job (or conceptual placeholder for one) that would run your application's unit tests.
+* **Task I: Run End-to-End (E2E) Tests:**
+    * Configure a dedicated job to run your Playwright (or chosen E2E framework) tests.
+    * **Crucial:** Ensure your application server starts robustly in the background *before* E2E tests execute (using a `curl` health check loop, not just `sleep`).
+* **Task J: Publish JUnit Test Report:**
+    * Configure your E2E tests to generate a JUnit XML report.
+    * Use `artifacts:reports:junit` in your CI job to ensure this report is parsed and displayed in the GitLab pipeline's `Tests` tab and Merge Request widget. Ensure `when: always` is used for test artifacts.
+* **Task K: Publish HTML Report:**
+    * Configure your E2E tests to generate a comprehensive HTML report (e.g., Playwright's HTML Report).
+    * Configure your CI job's `artifacts` to expose this HTML report as a browsable link in the GitLab UI, accessible from the pipeline page.
+
+#### Section 4: Environment & Deployment Strategy
+
+* **Task L: Implement Dynamic Review Applications:**
+    * Set up a job that deploys the application to a dynamic review environment for every Merge Request.
+    * Ensure this environment is automatically torn down when the Merge Request is closed or merged.
+* **Task M: Deploy to Static Environments:**
+    * Create separate jobs for deploying to a `staging` environment (e.g., automatically on `main` branch merges).
+    * Create a job for deploying to a `production` environment, with a manual gate.
+* **Task N: Environment-Scoped Variables:**
+    * Demonstrate the use of environment-scoped CI/CD variables to configure deployments differently for review, staging, and production environments (e.g., different API endpoints or database connections).
+
+#### Section 5: Advanced CI/CD Practices
+
+* **Task O: Implement Build Versioning:**
+    * In a build job, dynamically create an `APP_VERSION` string that includes at least the `$CI_COMMIT_SHORT_SHA` and passes it to subsequent jobs using `dotenv`.
+    * (Conceptual): Briefly describe how this `APP_VERSION` could be injected into your actual application (e.g., via a build variable or runtime environment variable).
+* **Task P: Apply Critical Analysis Learnings:**
+    * Ensure your pipeline reflects at least three points from the "Critical Analysis of the Pipeline" (e.g., robust app startup, intelligent use of `rules`, efficient artifact handling).
+* **Task Q: Basic Security Measures:**
+    * Confirm that any sensitive data (e.g., deployment tokens, API keys) used in your pipeline are protected and masked GitLab CI/CD variables.
+
+---
+
+#### Verification & Success Criteria
+
+Your quiz is successfully completed when:
+
+1.  Your entire pipeline (from `build` to `deploy_production`) runs successfully, reflecting all configured jobs.
+2.  The `e2e_tests` job passes, and its JUnit report is visible in the GitLab UI's `Tests` tab and Merge Request widget.
+3.  The HTML report generated by your E2E tests is accessible via a direct link from the pipeline artifacts.
+4.  A dynamic review application is successfully deployed for Merge Requests and cleanly removed upon closure/merge.
+5.  Deployments to `staging` are automated, and `production` deployments require a manual action.
+6.  All variables (predefined, custom, and `dotenv`-passed) are correctly used throughout the pipeline.
+7.  The application version (if applicable) clearly reflects the dynamic build information.
+8.  There are no glaring errors or warnings in your CI job logs.
+
+---
