@@ -464,3 +464,182 @@ build_and_push_docker_image:
 The GitLab Container Registry is an essential component for any team leveraging containers. It streamlines your container workflows, enhances security, and provides a robust foundation for your automated deployments.
 
 -----
+-----
+
+### Pushing Your Docker Image to the GitLab Container Registry: Your Application's Home in the Cloud 🏠☁️
+
+You've mastered creating a Dockerfile and building a local image. The next crucial step in your containerization journey is to get that image into a central, accessible location: the **GitLab Container Registry**. Pushing your image to the registry transforms it from a local artifact into a shareable, version-controlled asset, ready to be pulled by your CI/CD pipelines, fellow developers, or deployment environments.
+
+This guide will walk you through the process of pushing your `learn-gitlab-app` Docker image to its designated place within your GitLab project's registry.
+
+-----
+
+#### Why Push Your Image to a Registry?
+
+  * **Centralized Storage:** Your image becomes accessible to anyone with appropriate permissions, eliminating the need to rebuild it locally or transfer it manually.
+  * **Version Control:** Each pushed image is associated with a tag (e.g., `v1.0.0`, `main-abcdef1`), allowing you to track and deploy specific versions reliably.
+  * **CI/CD Automation:** It's the essential step before deploying your containerized application. Your CI/CD pipeline will push newly built images and pull them for deployment to various environments.
+  * **Collaboration:** Teams can easily share and utilize common base images or application images without complex manual setup.
+
+-----
+
+#### Prerequisites
+
+Before you can push, ensure you have:
+
+1.  **A GitLab Project:** Your `learn-gitlab-app` must be hosted in a GitLab repository.
+2.  **A Dockerfile:** You have successfully created a `Dockerfile` for your application (e.g., as per "78. Creating a Dockerfile").
+3.  **A Locally Built Image:** You've built your Docker image locally using `docker build`.
+
+-----
+
+#### The Core Process: Step-by-Step Guide
+
+Pushing an image involves three main actions: tagging it correctly, authenticating, and finally, pushing.
+
+##### Step 1: Tagging Your Docker Image for the Registry
+
+Your local Docker image needs to be tagged with the full path to its destination in the GitLab Container Registry. This path follows a specific format:
+
+`registry.gitlab.com/<your-group-or-username>/<your-project-path>/<image-name>:<tag>`
+
+  * `registry.gitlab.com`: The address of the GitLab Container Registry.
+  * `<your-group-or-username>`: Your GitLab group name or your personal username.
+  * `<your-project-path>`: The path to your project (e.g., `my-awesome-group/my-app` or `my-username/my-project`).
+  * `<image-name>`: The name you want to give your image within the registry (often your application's name, e.g., `web` or `frontend`).
+  * `<tag>`: A version tag for your image (e.g., `latest`, `v1.0.0`, `main-abcdef12`).
+
+**Example for `learn-gitlab-app`:**
+
+Assuming your GitLab username is `your-username` and your project path is `learn-gitlab-app`, and you want to tag your image as `web` with a `latest` tag:
+
+```bash
+docker tag learn-gitlab-app:local registry.gitlab.com/your-username/learn-gitlab-app/web:latest
+```
+
+*(Replace `your-username` and `learn-gitlab-app` with your actual group/username and project name.)*
+
+You can also tag it with a more specific identifier, like a Git commit SHA:
+
+```bash
+# Assuming you get the short SHA dynamically, e.g., from CI_COMMIT_SHORT_SHA
+docker tag learn-gitlab-app:local registry.gitlab.com/your-username/learn-gitlab-app/web:$(git rev-parse --short HEAD)
+```
+
+##### Step 2: Authenticating to the Registry (Logging In) 🔒
+
+Before you can push or pull images, your Docker client needs to authenticate with the GitLab Container Registry.
+
+  * **From Your Local Machine:**
+    You'll use your GitLab username and a [Personal Access Token (PAT)](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) with the `read_registry` and `write_registry` scopes.
+
+    ```bash
+    docker login registry.gitlab.com
+    # Username: your-gitlab-username
+    # Password: <paste_your_personal_access_token>
+    ```
+
+  * **From GitLab CI/CD Job:**
+    This is where GitLab's integration shines\! GitLab CI/CD automatically provides predefined variables for authentication, making the process seamless within your pipeline.
+
+    ```bash
+    docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    # $CI_REGISTRY_USER and $CI_REGISTRY_PASSWORD are automatically populated by GitLab.
+    # $CI_REGISTRY holds the registry URL (e.g., registry.gitlab.com).
+    ```
+
+    *Alternatively, you can use `$CI_JOB_TOKEN` for authentication as well.*
+
+##### Step 3: Pushing Your Image to the Registry
+
+Once tagged and authenticated, pushing is a single command:
+
+```bash
+docker push registry.gitlab.com/<your-group-or-username>/<your-project-path>/<image-name>:<tag>
+```
+
+Using the previous example:
+
+```bash
+docker push registry.gitlab.com/your-username/learn-gitlab-app/web:latest
+```
+
+-----
+
+#### Integrating with GitLab CI/CD: Automating the Push 🚀
+
+The most common and efficient way to push images is directly from your GitLab CI/CD pipeline after a successful build. This typically happens in a `build` stage job.
+
+```yaml
+# .gitlab-ci.yml
+
+stages:
+  - build
+  - test
+  - deploy
+
+build_and_push_docker_image:
+  stage: build
+  image: docker:latest # Use a Docker-enabled image
+  services:
+    - docker:dind # Required for running Docker in Docker (if using GitLab Shared Runners)
+  script:
+    - echo "--- Logging into GitLab Container Registry ---"
+    # Authenticate using predefined CI/CD variables
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+
+    - echo "--- Building Docker Image ---"
+    # Define your image tags using predefined variables for consistency
+    - IMAGE_NAME="$CI_REGISTRY_IMAGE/web" # Example: registry.gitlab.com/my-group/my-project/web
+    - IMAGE_TAG_SHA="$IMAGE_NAME:$CI_COMMIT_SHORT_SHA" # Tag with short Git SHA
+    - IMAGE_TAG_LATEST="$IMAGE_NAME:latest" # Tag as latest (use with caution for production)
+
+    # Build the image using the current directory as context
+    - docker build -t "$IMAGE_TAG_SHA" -t "$IMAGE_TAG_LATEST" .
+
+    - echo "--- Pushing Docker Image to Registry ---"
+    # Push the image with both tags
+    - docker push "$IMAGE_TAG_SHA"
+    - docker push "$IMAGE_TAG_LATEST"
+    - echo "Successfully pushed images: $IMAGE_TAG_SHA and $IMAGE_TAG_LATEST"
+
+  # Optionally, make the image tag available to downstream jobs (e.g., deploy job)
+  artifacts:
+    reports:
+      dotenv: build_image_data.env # Create a .env file to pass variables
+    paths:
+      - build_image_data.env
+    expire_in: 1 day # Clean up intermediate artifacts
+
+  variables:
+    # Example: Define a variable to be passed via dotenv
+    APP_DOCKER_IMAGE: "$IMAGE_TAG_SHA" # This variable will be available in subsequent jobs via dotenv artifact
+```
+
+-----
+
+#### Verification: Confirming Your Push in GitLab UI ✅
+
+After running the `docker push` command (either locally or via CI/CD):
+
+1.  **Navigate to Your Project:** Open your `learn-gitlab-app` project in the GitLab web interface.
+2.  **Go to Container Registry:** In the left sidebar, click on `Packages and Registries > Container Registry`.
+3.  **Inspect Your Image:** You should see your `learn-gitlab-app` image (or whatever `IMAGE_NAME` you used, e.g., `web`) listed.
+4.  **Check Tags:** Click on the image name to view its details. You should see all the tags you pushed (e.g., `latest`, your specific SHA tag).
+5.  **Verify Size and Date:** Confirm the size and "Last updated" timestamp match your recent push.
+
+-----
+
+#### Best Practices for Pushing Images
+
+  * **Automate in CI/CD:** Always push images via your CI/CD pipeline, not manually, for consistency and reliability.
+  * **Tagging Strategy:** Use a consistent and meaningful tagging strategy (e.g., `main-<commit_sha>`, `release-vX.Y.Z`). Be cautious with the `latest` tag in production environments.
+  * **Optimize Image Size:** Smaller images push faster, pull faster, and consume less storage. Use multi-stage builds, minimal base images (like Alpine), and ensure your `.dockerignore` file is comprehensive.
+  * **Implement Cleanup Policies:** Configure registry cleanup policies in GitLab to automatically remove old or redundant images, managing storage.
+  * **Leverage Security Scanning:** If enabled for your GitLab instance, ensure your pushed images are scanned for vulnerabilities.
+
+-----
+
+By successfully pushing your Docker image to the GitLab Container Registry, you've established a central, version-controlled repository for your application's builds, a fundamental requirement for efficient and reliable CI/CD and deployments.
+
+-----
