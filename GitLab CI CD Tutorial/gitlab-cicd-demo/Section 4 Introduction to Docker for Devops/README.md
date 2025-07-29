@@ -875,3 +875,156 @@ deploy_to_staging:
 Using a custom Docker image is a hallmark of a mature CI/CD pipeline. It not only accelerates your jobs but also provides a more consistent, controlled, and scalable environment for all your automated processes.
 
 -----
+-----
+
+### Creating a Scheduled Pipeline: Automating Recurring Tasks in GitLab CI/CD ⏰
+
+While most GitLab CI/CD pipelines are triggered by code changes (pushes, merge requests), there are many scenarios where you need to execute a pipeline at predetermined times, regardless of code activity. This is where **scheduled pipelines** come in.
+
+Scheduled pipelines allow you to automate recurring tasks, from daily maintenance checks to weekly security scans, ensuring your operations are proactive and consistent without manual intervention.
+
+-----
+
+#### Why Scheduled Pipelines Matter: Common Use Cases
+
+Scheduled pipelines are incredibly versatile and can automate a wide array of recurring tasks, providing significant benefits:
+
+  * **Regular Maintenance & Housekeeping:**
+      * Daily database backups or cleanups.
+      * Automated cache warming for production environments.
+      * Periodic synchronization of data between systems.
+  * **Periodic Reporting & Health Checks:**
+      * Generating daily, weekly, or monthly reports (e.g., code quality trends, test coverage reports).
+      * Running regular "smoke tests" or health checks on deployed applications (staging or production) to ensure they are still running correctly.
+  * **Automated Security Scans:**
+      * Initiating weekly or monthly Static Application Security Testing (SAST) or Dependency Scanning to catch new vulnerabilities.
+      * Running Dynamic Application Security Testing (DAST) against deployed environments during off-peak hours.
+  * **Performance Monitoring:**
+      * Executing regular performance tests or load tests to track application responsiveness over time.
+  * **Off-Peak Operations:**
+      * Running resource-intensive builds, tests, or deployments during times of low system usage to minimize impact on active development.
+
+-----
+
+#### How to Create a Scheduled Pipeline: A GitLab UI Guide
+
+Creating a scheduled pipeline is done through the GitLab web interface, allowing you to configure the timing and any specific variables.
+
+1.  **Navigate to CI/CD Schedules:**
+
+      * In your GitLab project, go to `Build > CI/CD > Schedules` in the left sidebar.
+
+2.  **Add a New Schedule:**
+
+      * Click the **`New schedule`** button.
+
+3.  **Configure Your Schedule:**
+
+      * **Description:** Provide a clear, concise description of what this schedule does (e.g., "Daily Production Health Check", "Weekly Security Scan on Main").
+      * **Interval (Cron Timetable):** This is the core of your schedule. You'll define the recurrence using standard Unix Cron syntax (e.g., `0 * * * *` for hourly, `0 0 * * *` for daily at midnight).
+          * **Cron Syntax Basics (Minute Hour DayOfMonth Month DayOfWeek):**
+              * `*`: Any value
+              * `,`: List separator (e.g., `0 9,17 * * *` = at 9:00 AM and 5:00 PM)
+              * `-`: Range (e.g., `0 0 * * 1-5` = Monday-Friday at midnight)
+              * `*/N`: Every N (e.g., `*/15 * * * *` = every 15 minutes)
+          * **Common Examples:**
+              * **Hourly:** `0 * * * *`
+              * **Daily at 3 AM:** `0 3 * * *`
+              * **Every Monday at 9 AM:** `0 9 * * 1`
+              * **First day of every month at midnight:** `0 0 1 * *`
+      * **Cron Timezone:** **Crucial\!** Select the timezone for your Cron schedule. This ensures the pipeline runs at the intended local time, regardless of the GitLab server's timezone.
+      * **Target Branch:** Specify the branch on which the pipeline should be run (e.g., `main`, `develop`, `release/v1.0`).
+      * **Variables:** This is a powerful feature\! You can define custom CI/CD variables that will only be present when this specific scheduled pipeline runs. This allows you to trigger specific behaviors in your `.gitlab-ci.yml`.
+          * Example: `KEY=VALUE`, `RUN_FULL_SCAN=true`.
+      * **Activated:** Ensure this checkbox is ticked if you want the schedule to be active immediately.
+      * Click **`Save pipeline schedule`**.
+
+4.  **Manage and Run:**
+
+      * After saving, your schedule will appear in the list. You can manually `Play` (trigger immediately), `Edit`, or `Delete` the schedule.
+      * Each time the schedule triggers, a new pipeline will appear in your `CI/CD > Pipelines` view, with the "Triggerer" showing "API" or "Scheduled pipeline."
+
+-----
+
+#### Triggering Specific Jobs from a Scheduled Pipeline (YAML Integration) ⚙️
+
+While the schedule itself is configured in the UI, your `.gitlab-ci.yml` needs to know how to react to it. You use the predefined CI/CD variable `$CI_PIPELINE_SOURCE` and any custom variables you define in the schedule.
+
+  * `$CI_PIPELINE_SOURCE` will be set to `"schedule"` when a pipeline is triggered by a schedule.
+
+**Example: Running a Security Scan only via Schedule**
+
+```yaml
+# .gitlab-ci.yml
+
+stages:
+  - build
+  - test
+  - security # A new stage for security scans
+  - deploy
+
+# ... (other jobs like build, unit tests, e2e tests) ...
+
+# Job to run a security scan
+scheduled_security_scan:
+  stage: security
+  image: your/security-scanner-image:latest # Custom image with security tools
+  script:
+    - echo "Running scheduled security scan..."
+    - security-scanner --target=$APP_URL --full-scan=$FULL_SCAN_FLAG
+    - echo "Security scan complete."
+  rules:
+    # This job ONLY runs if the pipeline source is 'schedule'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: always # Always run this job on schedule, even if preceding jobs failed
+    # You can combine this with custom variables set in the schedule:
+    # - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCAN_TYPE == "full"'
+    #   when: always
+```
+
+**Using Custom Schedule Variables:**
+
+If you set a variable `SCAN_TYPE = "full"` in your schedule UI, your `rules` can react to it:
+
+```yaml
+# Example: Job to run a 'full' scan only when the schedule variable is set
+scheduled_full_security_scan:
+  stage: security
+  image: your/security-scanner-image:latest
+  script:
+    - echo "Running FULL scheduled security scan..."
+    - security-scanner --full
+  rules:
+    - if: '$CI_PIIPELINE_SOURCE == "schedule" && $SCAN_TYPE == "full"'
+      when: always
+
+# Example: Job to run a 'light' scan when the schedule variable is different
+scheduled_light_security_scan:
+  stage: security
+  image: your/security-scanner-image:latest
+  script:
+    - echo "Running LIGHT scheduled security scan..."
+    - security-scanner --light
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCAN_TYPE == "light"'
+      when: always
+```
+
+-----
+
+#### Best Practices for Scheduled Pipelines 💡
+
+  * **Meaningful Descriptions:** Always use clear descriptions for your schedules so anyone can understand their purpose.
+  * **Test Cron Expressions:** Use online Cron expression validators to ensure your schedule runs exactly when you intend.
+  * **Target Specific Branches:** Avoid running scheduled pipelines on the default branch unless specifically needed. Often, a dedicated `maintenance` or `release` branch might be more appropriate.
+  * **Set Timezones:** Always explicitly set the Cron timezone to avoid unexpected execution times due to server time differences.
+  * **Leverage Custom Variables:** Use variables to control which specific jobs run or to pass configuration (e.g., `ENVIRONMENT=production`, `REPORT_PERIOD=weekly`).
+  * **Monitor and Notify:** Ensure you have notifications set up for scheduled pipeline failures, especially for critical tasks like backups or security scans.
+  * **Consider Resource Impact:** For resource-intensive tasks, schedule them during off-peak hours to minimize impact on development activities.
+  * **Review Regularly:** Periodically review your scheduled pipelines to ensure they are still relevant and optimally configured.
+
+-----
+
+By leveraging scheduled pipelines, you unlock new dimensions of automation in your GitLab CI/CD, enabling proactive maintenance, consistent reporting, and automated quality gates without human intervention.
+
+-----
