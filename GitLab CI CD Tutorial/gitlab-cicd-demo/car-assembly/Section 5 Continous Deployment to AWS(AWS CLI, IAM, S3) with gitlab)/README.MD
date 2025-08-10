@@ -1243,3 +1243,103 @@ IAM is your part of the **Shared Responsibility Model**.
 IAM is the primary tool that empowers you to fulfill your security responsibilities in the AWS Cloud.
 
 -----
+-----
+
+### Managing AWS Credentials in GitLab CI/CD: A Secure and Practical Guide 🔒
+
+In any CI/CD pipeline that interacts with Amazon Web Services, securely managing credentials is a top priority. Hardcoding AWS Access Keys and Secret Keys directly into your `.gitlab-ci.yml` file is a major security risk, as it exposes your credentials in the repository's history and in pipeline logs.
+
+This guide provides a step-by-step, best-practice approach to managing your AWS credentials in GitLab CI/CD using **masked and protected variables**, ensuring your cloud resources remain secure while enabling seamless pipeline automation.
+
+-----
+
+### The Problem with Hardcoded Credentials 🔑
+
+When you hardcode AWS credentials in your pipeline file, you create a number of security vulnerabilities:
+
+  * **Repository Exposure:** Anyone with access to your project's Git history can view your credentials.
+  * **Pipeline Log Exposure:** Your credentials can be accidentally printed in pipeline logs, making them visible to anyone with job access.
+  * **Lack of Control:** You cannot easily rotate or revoke credentials without changing code and committing the change, which is a slow and risky process.
+
+-----
+
+### The Solution: Secure CI/CD Variables ⚙️
+
+GitLab's CI/CD variables provide a safe and effective solution. By storing your AWS credentials as variables in the GitLab UI, you get the following benefits:
+
+  * **Separation of Concerns:** Your sensitive credentials are no longer stored in your codebase.
+  * **Masked & Protected:** You can mask the variables so they are hidden in job logs, and protect them so they are only available on protected branches and tags (e.g., `main`, `release`).
+  * **Centralized Management:** Credentials can be easily updated or rotated in one place without touching your `.gitlab-ci.yml` file.
+
+-----
+
+### Step-by-Step Guide to Secure Credentials
+
+Follow these three steps to set up secure AWS access for your GitLab pipelines.
+
+#### Part 1: AWS IAM Setup
+
+1.  **Create an IAM User:** In the AWS Management Console, navigate to the **IAM service**.
+2.  **Apply the Principle of Least Privilege:** Create a new IAM User specifically for your GitLab runner. Grant this user only the necessary permissions required by your CI/CD job. For a simple test, you might attach a policy like `AmazonS3ReadOnlyAccess`.
+3.  **Generate Credentials:** Create an **Access Key** and **Secret Key** for this new IAM User. **Save these securely**, as they will only be shown once.
+
+#### Part 2: GitLab CI/CD Variables Setup
+
+1.  **Navigate to Variables:** In your GitLab project, go to **`Settings`** -\> **`CI/CD`**.
+2.  **Expand Variables:** Find the **`Variables`** section and click **`Expand`**.
+3.  **Add Your AWS Credentials:** Create two new variables:
+      * **Key:** `AWS_ACCESS_KEY_ID`
+      * **Value:** Paste your Access Key from AWS.
+      * **Key:** `AWS_SECRET_ACCESS_KEY`
+      * **Value:** Paste your Secret Key from AWS.
+4.  **Protect & Mask:** For both variables, make sure to check the **`Protect variable`** and **`Mask variable`** boxes. This is the most critical step for security.
+
+#### Part 3: Pipeline Integration
+
+By default, the AWS CLI and AWS SDKs will automatically look for these environment variables. You don't need to do anything special to your pipeline script, just install the AWS CLI and it will work\!
+
+-----
+
+### Putting it All Together: A Concrete Example 🚀
+
+This `.gitlab-ci.yml` file demonstrates how a job can securely use the credentials you set up to list your S3 buckets.
+
+```yaml
+# .gitlab-ci.yml
+
+stages:
+  - aws-test
+
+# Define a job that runs the AWS CLI
+list_s3_buckets:
+  stage: aws-test
+  image: "python:3.9-slim" # We use a Python image as it's easy to install the AWS CLI on
+  
+  # Ensure this job only runs on protected branches to use the protected variables
+  only:
+    - main
+    
+  before_script:
+    - echo "Installing AWS CLI..."
+    # The --upgrade ensures we get the latest version
+    - pip install awscli --upgrade > /dev/null
+    - echo "AWS CLI installed successfully."
+    
+  script:
+    - echo "Attempting to list S3 buckets..."
+    # The AWS CLI automatically detects the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY variables
+    # No need to expose them here.
+    - aws s3 ls
+    
+  after_script:
+    - echo "Job finished. The AWS credentials were never exposed in the logs."
+```
+
+### Advanced Best Practices for Production 💡
+
+  * **Use IAM Roles for CI/CD:** For a more secure, long-term solution, consider using OpenID Connect (OIDC) with GitLab. This allows your CI/CD job to assume a specific IAM Role, providing temporary credentials without you ever having to manage static Access Keys.
+  * **Environment-Specific Variables:** For a `staging` pipeline, use a separate IAM user with permissions for the staging environment. For `production`, use a dedicated, more tightly controlled IAM user.
+  * **Set Expiration Dates:** When creating credentials, set a reminder to rotate them regularly (e.g., every 90 days).
+  * **Monitor and Audit:** Use AWS CloudTrail to log and monitor the API calls made by the IAM user, providing an audit trail of your pipeline's activity.
+
+-----
