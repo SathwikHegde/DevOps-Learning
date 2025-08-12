@@ -45,21 +45,21 @@ Before diving into specific services, understanding a few fundamental AWS concep
 AWS offers over 200 services, but a few are foundational for almost any cloud journey:
 
 * **Compute:**
-    * **Amazon EC2 (Elastic Compute Cloud):** Provides resizable compute capacity (virtual servers) in the cloud. You have full control over the operating system, software, and networking.
-    * **AWS Lambda:** A serverless compute service that lets you run code without provisioning or managing servers. You only pay for the compute time you consume.
+  * **Amazon EC2 (Elastic Compute Cloud):** Provides resizable compute capacity (virtual servers) in the cloud. You have full control over the operating system, software, and networking.
+  * **AWS Lambda:** A serverless compute service that lets you run code without provisioning or managing servers. You only pay for the compute time you consume.
 * **Storage:**
-    * **Amazon S3 (Simple Storage Service):** Object storage built to store and retrieve any amount of data from anywhere on the web. Highly scalable, durable, and available.
-    * **Amazon EBS (Elastic Block Store):** Block-level storage volumes for use with EC2 instances, suitable for operating systems and databases.
+  * **Amazon S3 (Simple Storage Service):** Object storage built to store and retrieve any amount of data from anywhere on the web. Highly scalable, durable, and available.
+  * **Amazon EBS (Elastic Block Store):** Block-level storage volumes for use with EC2 instances, suitable for operating systems and databases.
 * **Databases:**
-    * **Amazon RDS (Relational Database Service):** Managed relational databases (MySQL, PostgreSQL, Oracle, SQL Server, MariaDB, Aurora).
-    * **Amazon DynamoDB:** A fast, flexible NoSQL database service for single-digit millisecond performance at any scale.
+  * **Amazon RDS (Relational Database Service):** Managed relational databases (MySQL, PostgreSQL, Oracle, SQL Server, MariaDB, Aurora).
+  * **Amazon DynamoDB:** A fast, flexible NoSQL database service for single-digit millisecond performance at any scale.
 * **Networking:**
-    * **Amazon VPC (Virtual Private Cloud):** Lets you provision a logically isolated section of the AWS Cloud where you can launch AWS resources in a virtual network that you define.
+  * **Amazon VPC (Virtual Private Cloud):** Lets you provision a logically isolated section of the AWS Cloud where you can launch AWS resources in a virtual network that you define.
 * **Security & Identity:**
-    * **AWS IAM (Identity and Access Management):** Manages access to AWS services and resources securely. You can create and manage AWS users and groups, and use permissions to allow and deny their access to AWS resources.
+  * **AWS IAM (Identity and Access Management):** Manages access to AWS services and resources securely. You can create and manage AWS users and groups, and use permissions to allow and deny their access to AWS resources.
 * **Management & Monitoring:**
-    * **Amazon CloudWatch:** Monitors your AWS resources and the applications you run on AWS in real-time.
-    * **AWS CloudFormation:** Helps you model and set up your AWS resources, spend less time on manual management, and focus more on your applications.
+  * **Amazon CloudWatch:** Monitors your AWS resources and the applications you run on AWS in real-time.
+  * **AWS CloudFormation:** Helps you model and set up your AWS resources, spend less time on manual management, and focus more on your applications.
 
 ---
 
@@ -104,17 +104,17 @@ Unlike traditional file systems or block storage, S3 stores data as **objects** 
 S3's immense popularity stems from its core design principles, offering unparalleled advantages:
 
 * **1. Extreme Durability (11 Nines!):**
-    * S3 is designed for **99.999999999% (11 nines)** of durability, meaning that if you store 10,000,000 objects, you can expect to lose one object every 10,000 years, on average. This is achieved by redundantly storing your data across multiple devices in multiple Availability Zones.
+  * S3 is designed for **99.999999999% (11 nines)** of durability, meaning that if you store 10,000,000 objects, you can expect to lose one object every 10,000 years, on average. This is achieved by redundantly storing your data across multiple devices in multiple Availability Zones.
 * **2. High Availability:**
-    * S3 offers high availability, ensuring your data is accessible when you need it, with a typical availability of **99.99%** for standard storage.
+  * S3 offers high availability, ensuring your data is accessible when you need it, with a typical availability of **99.99%** for standard storage.
 * **3. Virtually Unlimited Scalability:**
-    * You can store any amount of data in S3, from a few kilobytes to petabytes and exabytes, without needing to provision capacity upfront. It scales seamlessly to meet your demands.
+  * You can store any amount of data in S3, from a few kilobytes to petabytes and exabytes, without needing to provision capacity upfront. It scales seamlessly to meet your demands.
 * **4. Robust Security:** 🔒
-    * S3 provides powerful access management features with AWS IAM, bucket policies, and Access Control Lists (ACLs). Data can be encrypted at rest and in transit, ensuring your information is protected.
+  * S3 provides powerful access management features with AWS IAM, bucket policies, and Access Control Lists (ACLs). Data can be encrypted at rest and in transit, ensuring your information is protected.
 * **5. Performance & Global Reach:**
-    * Designed for high throughput and low latency, S3 can handle massive numbers of requests per second. It's accessible from anywhere in the world and optimized for global content delivery.
+  * Designed for high throughput and low latency, S3 can handle massive numbers of requests per second. It's accessible from anywhere in the world and optimized for global content delivery.
 * **6. Cost-Effectiveness:**
-    * With a "pay-as-you-go" model and various storage classes, S3 allows you to optimize costs based on your data access patterns.
+  * With a "pay-as-you-go" model and various storage classes, S3 allows you to optimize costs based on your data access patterns.
 
 ---
 
@@ -123,16 +123,16 @@ S3's immense popularity stems from its core design principles, offering unparall
 Understanding these fundamental components is key to working with S3:
 
 * **Buckets:**
-    * A bucket is a fundamental container for data in S3. It's like a top-level folder in cloud storage.
-    * Bucket names must be globally unique across all AWS accounts.
-    * You create buckets in a specific AWS Region.
+  * A bucket is a fundamental container for data in S3. It's like a top-level folder in cloud storage.
+  * Bucket names must be globally unique across all AWS accounts.
+  * You create buckets in a specific AWS Region.
 * **Objects:**
-    * An object is the fundamental entity stored in an S3 bucket.
-    * An object consists of the **data** (your file) and **metadata** (a set of name-value pairs that describe the object, like content type, last modified date, and custom data).
-    * Objects are identified by a unique **key** within a bucket (e.g., `my-folder/my-file.txt`).
-    * Individual objects can range from 0 bytes up to 5 TB (larger files can be uploaded using multipart upload).
+  * An object is the fundamental entity stored in an S3 bucket.
+  * An object consists of the **data** (your file) and **metadata** (a set of name-value pairs that describe the object, like content type, last modified date, and custom data).
+  * Objects are identified by a unique **key** within a bucket (e.g., `my-folder/my-file.txt`).
+  * Individual objects can range from 0 bytes up to 5 TB (larger files can be uploaded using multipart upload).
 * **Keys:**
-    * The unique identifier for an object within a bucket. Essentially, the full path to the object within that bucket.
+  * The unique identifier for an object within a bucket. Essentially, the full path to the object within that bucket.
 
 ---
 
@@ -141,17 +141,17 @@ Understanding these fundamental components is key to working with S3:
 Beyond basic storage, S3 offers a rich set of features to build sophisticated solutions:
 
 * **Storage Classes:** Optimize costs and performance based on data access frequency.
-    * **S3 Standard:** Default, high durability, availability, and performance for frequently accessed data.
-    * **S3 Intelligent-Tiering:** Automatically moves data between two access tiers (frequent and infrequent) based on access patterns, optimizing costs without performance impact.
-    * **S3 Standard-Infrequent Access (S3 Standard-IA):** For data that is accessed less frequently but requires rapid access when needed. Lower storage cost than Standard, but higher retrieval cost.
-    * **S3 One Zone-Infrequent Access (S3 One Zone-IA):** Similar to S3 Standard-IA, but data is stored only in a single Availability Zone. Lower cost, but less resilient to AZ loss.
-    * **Amazon S3 Glacier & S3 Glacier Deep Archive:** Extremely low-cost archive storage for long-term data retention (minutes to hours for retrieval).
+  * **S3 Standard:** Default, high durability, availability, and performance for frequently accessed data.
+  * **S3 Intelligent-Tiering:** Automatically moves data between two access tiers (frequent and infrequent) based on access patterns, optimizing costs without performance impact.
+  * **S3 Standard-Infrequent Access (S3 Standard-IA):** For data that is accessed less frequently but requires rapid access when needed. Lower storage cost than Standard, but higher retrieval cost.
+  * **S3 One Zone-Infrequent Access (S3 One Zone-IA):** Similar to S3 Standard-IA, but data is stored only in a single Availability Zone. Lower cost, but less resilient to AZ loss.
+  * **Amazon S3 Glacier & S3 Glacier Deep Archive:** Extremely low-cost archive storage for long-term data retention (minutes to hours for retrieval).
 * **Versioning:** Keeps multiple versions of an object in the same bucket. Protects against accidental overwrites, deletions, and allows for easy rollback.
 * **Lifecycle Policies:** Automate the transition of objects between different storage classes or their expiration/deletion after a certain period, optimizing costs over time.
 * **Access Control:**
-    * **IAM Policies:** Define permissions for users and roles to access S3 resources.
-    * **Bucket Policies:** JSON-based policies attached directly to a bucket to grant permissions to AWS accounts, IAM users, or even public access.
-    * **Access Control Lists (ACLs):** Legacy method for basic read/write permissions at the object or bucket level.
+  * **IAM Policies:** Define permissions for users and roles to access S3 resources.
+  * **Bucket Policies:** JSON-based policies attached directly to a bucket to grant permissions to AWS accounts, IAM users, or even public access.
+  * **Access Control Lists (ACLs):** Legacy method for basic read/write permissions at the object or bucket level.
 * **Static Website Hosting:** Host static HTML, CSS, JavaScript, and other client-side files directly from an S3 bucket, making it a very cost-effective way to deploy websites.
 * **Event Notifications:** Configure S3 to send notifications (e.g., to AWS Lambda, SQS, SNS) when certain events occur (e.g., an object is created, deleted, or restored).
 * **Cross-Region Replication (CRR):** Automatically replicate objects stored in one S3 bucket to a bucket in a different AWS Region for disaster recovery or reduced latency for global users.
@@ -204,17 +204,17 @@ Unlike traditional file systems or block storage, S3 stores data as **objects** 
 S3's immense popularity stems from its core design principles, offering unparalleled advantages:
 
 * **1. Extreme Durability (11 Nines!):**
-    * S3 is designed for **99.999999999% (11 nines)** of durability, meaning that if you store 10,000,000 objects, you can expect to lose one object every 10,000 years, on average. This is achieved by redundantly storing your data across multiple devices in multiple Availability Zones.
+  * S3 is designed for **99.999999999% (11 nines)** of durability, meaning that if you store 10,000,000 objects, you can expect to lose one object every 10,000 years, on average. This is achieved by redundantly storing your data across multiple devices in multiple Availability Zones.
 * **2. High Availability:**
-    * S3 offers high availability, ensuring your data is accessible when you need it, with a typical availability of **99.99%** for standard storage.
+  * S3 offers high availability, ensuring your data is accessible when you need it, with a typical availability of **99.99%** for standard storage.
 * **3. Virtually Unlimited Scalability:**
-    * You can store any amount of data in S3, from a few kilobytes to petabytes and exabytes, without needing to provision capacity upfront. It scales seamlessly to meet your demands.
+  * You can store any amount of data in S3, from a few kilobytes to petabytes and exabytes, without needing to provision capacity upfront. It scales seamlessly to meet your demands.
 * **4. Robust Security:** 🔒
-    * S3 provides powerful access management features with AWS IAM, bucket policies, and Access Control Lists (ACLs). Data can be encrypted at rest and in transit, ensuring your information is protected.
+  * S3 provides powerful access management features with AWS IAM, bucket policies, and Access Control Lists (ACLs). Data can be encrypted at rest and in transit, ensuring your information is protected.
 * **5. Performance & Global Reach:**
-    * Designed for high throughput and low latency, S3 can handle massive numbers of requests per second. It's accessible from anywhere in the world and optimized for global content delivery.
+  * Designed for high throughput and low latency, S3 can handle massive numbers of requests per second. It's accessible from anywhere in the world and optimized for global content delivery.
 * **6. Cost-Effectiveness:**
-    * With a "pay-as-you-go" model and various storage classes, S3 allows you to optimize costs based on your data access patterns.
+  * With a "pay-as-you-go" model and various storage classes, S3 allows you to optimize costs based on your data access patterns.
 
 ---
 
@@ -223,16 +223,16 @@ S3's immense popularity stems from its core design principles, offering unparall
 Understanding these fundamental components is key to working with S3:
 
 * **Buckets:**
-    * A bucket is a fundamental container for data in S3. It's like a top-level folder in cloud storage.
-    * Bucket names must be globally unique across all AWS accounts.
-    * You create buckets in a specific AWS Region.
+  * A bucket is a fundamental container for data in S3. It's like a top-level folder in cloud storage.
+  * Bucket names must be globally unique across all AWS accounts.
+  * You create buckets in a specific AWS Region.
 * **Objects:**
-    * An object is the fundamental entity stored in an S3 bucket.
-    * An object consists of the **data** (your file) and **metadata** (a set of name-value pairs that describe the object, like content type, last modified date, and custom data).
-    * Objects are identified by a unique **key** within a bucket (e.g., `my-folder/my-file.txt`).
-    * Individual objects can range from 0 bytes up to 5 TB (larger files can be uploaded using multipart upload).
+  * An object is the fundamental entity stored in an S3 bucket.
+  * An object consists of the **data** (your file) and **metadata** (a set of name-value pairs that describe the object, like content type, last modified date, and custom data).
+  * Objects are identified by a unique **key** within a bucket (e.g., `my-folder/my-file.txt`).
+  * Individual objects can range from 0 bytes up to 5 TB (larger files can be uploaded using multipart upload).
 * **Keys:**
-    * The unique identifier for an object within a bucket. Essentially, the full path to the object within that bucket.
+  * The unique identifier for an object within a bucket. Essentially, the full path to the object within that bucket.
 
 ---
 
@@ -241,17 +241,17 @@ Understanding these fundamental components is key to working with S3:
 Beyond basic storage, S3 offers a rich set of features to build sophisticated solutions:
 
 * **Storage Classes:** Optimize costs and performance based on data access frequency.
-    * **S3 Standard:** Default, high durability, availability, and performance for frequently accessed data.
-    * **S3 Intelligent-Tiering:** Automatically moves data between two access tiers (frequent and infrequent) based on access patterns, optimizing costs without performance impact.
-    * **S3 Standard-Infrequent Access (S3 Standard-IA):** For data that is accessed less frequently but requires rapid access when needed. Lower storage cost than Standard, but higher retrieval cost.
-    * **S3 One Zone-Infrequent Access (S3 One Zone-IA):** Similar to S3 Standard-IA, but data is stored only in a single Availability Zone. Lower cost, but less resilient to AZ loss.
-    * **Amazon S3 Glacier & S3 Glacier Deep Archive:** Extremely low-cost archive storage for long-term data retention (minutes to hours for retrieval).
+  * **S3 Standard:** Default, high durability, availability, and performance for frequently accessed data.
+  * **S3 Intelligent-Tiering:** Automatically moves data between two access tiers (frequent and infrequent) based on access patterns, optimizing costs without performance impact.
+  * **S3 Standard-Infrequent Access (S3 Standard-IA):** For data that is accessed less frequently but requires rapid access when needed. Lower storage cost than Standard, but higher retrieval cost.
+  * **S3 One Zone-Infrequent Access (S3 One Zone-IA):** Similar to S3 Standard-IA, but data is stored only in a single Availability Zone. Lower cost, but less resilient to AZ loss.
+  * **Amazon S3 Glacier & S3 Glacier Deep Archive:** Extremely low-cost archive storage for long-term data retention (minutes to hours for retrieval).
 * **Versioning:** Keeps multiple versions of an object in the same bucket. Protects against accidental overwrites, deletions, and allows for easy rollback.
 * **Lifecycle Policies:** Automate the transition of objects between different storage classes or their expiration/deletion after a certain period, optimizing costs over time.
 * **Access Control:**
-    * **IAM Policies:** Define permissions for users and roles to access S3 resources.
-    * **Bucket Policies:** JSON-based policies attached directly to a bucket to grant permissions to AWS accounts, IAM users, or even public access.
-    * **Access Control Lists (ACLs):** Legacy method for basic read/write permissions at the object or bucket level.
+  * **IAM Policies:** Define permissions for users and roles to access S3 resources.
+  * **Bucket Policies:** JSON-based policies attached directly to a bucket to grant permissions to AWS accounts, IAM users, or even public access.
+  * **Access Control Lists (ACLs):** Legacy method for basic read/write permissions at the object or bucket level.
 * **Static Website Hosting:** Host static HTML, CSS, JavaScript, and other client-side files directly from an S3 bucket, making it a very cost-effective way to deploy websites.
 * **Event Notifications:** Configure S3 to send notifications (e.g., to AWS Lambda, SQS, SNS) when certain events occur (e.g., an object is created, deleted, or restored).
 * **Cross-Region Replication (CRR):** Automatically replicate objects stored in one S3 bucket to a bucket in a different AWS Region for disaster recovery or reduced latency for global users.
@@ -305,17 +305,17 @@ Unlike traditional file systems or block storage, S3 stores data as **objects** 
 S3's immense popularity stems from its core design principles, offering unparalleled advantages:
 
 * **1. Extreme Durability (11 Nines!):**
-    * S3 is designed for **99.999999999% (11 nines)** of durability, meaning that if you store 10,000,000 objects, you can expect to lose one object every 10,000 years, on average. This is achieved by redundantly storing your data across multiple devices in multiple Availability Zones.
+  * S3 is designed for **99.999999999% (11 nines)** of durability, meaning that if you store 10,000,000 objects, you can expect to lose one object every 10,000 years, on average. This is achieved by redundantly storing your data across multiple devices in multiple Availability Zones.
 * **2. High Availability:**
-    * S3 offers high availability, ensuring your data is accessible when you need it, with a typical availability of **99.99%** for standard storage.
+  * S3 offers high availability, ensuring your data is accessible when you need it, with a typical availability of **99.99%** for standard storage.
 * **3. Virtually Unlimited Scalability:**
-    * You can store any amount of data in S3, from a few kilobytes to petabytes and exabytes, without needing to provision capacity upfront. It scales seamlessly to meet your demands.
+  * You can store any amount of data in S3, from a few kilobytes to petabytes and exabytes, without needing to provision capacity upfront. It scales seamlessly to meet your demands.
 * **4. Robust Security:** 🔒
-    * S3 provides powerful access management features with AWS IAM, bucket policies, and Access Control Lists (ACLs). Data can be encrypted at rest and in transit, ensuring your information is protected.
+  * S3 provides powerful access management features with AWS IAM, bucket policies, and Access Control Lists (ACLs). Data can be encrypted at rest and in transit, ensuring your information is protected.
 * **5. Performance & Global Reach:**
-    * Designed for high throughput and low latency, S3 can handle massive numbers of requests per second. It's accessible from anywhere in the world and optimized for global content delivery.
+  * Designed for high throughput and low latency, S3 can handle massive numbers of requests per second. It's accessible from anywhere in the world and optimized for global content delivery.
 * **6. Cost-Effectiveness:**
-    * With a "pay-as-you-go" model and various storage classes, S3 allows you to optimize costs based on your data access patterns.
+  * With a "pay-as-you-go" model and various storage classes, S3 allows you to optimize costs based on your data access patterns.
 
 ---
 
@@ -324,16 +324,16 @@ S3's immense popularity stems from its core design principles, offering unparall
 Understanding these fundamental components is key to working with S3:
 
 * **Buckets:**
-    * A bucket is a fundamental container for data in S3. It's like a top-level folder in cloud storage.
-    * Bucket names must be globally unique across all AWS accounts.
-    * You create buckets in a specific AWS Region.
+  * A bucket is a fundamental container for data in S3. It's like a top-level folder in cloud storage.
+  * Bucket names must be globally unique across all AWS accounts.
+  * You create buckets in a specific AWS Region.
 * **Objects:**
-    * An object is the fundamental entity stored in an S3 bucket.
-    * An object consists of the **data** (your file) and **metadata** (a set of name-value pairs that describe the object, like content type, last modified date, and custom data).
-    * Objects are identified by a unique **key** within a bucket (e.g., `my-folder/my-file.txt`).
-    * Individual objects can range from 0 bytes up to 5 TB (larger files can be uploaded using multipart upload).
+  * An object is the fundamental entity stored in an S3 bucket.
+  * An object consists of the **data** (your file) and **metadata** (a set of name-value pairs that describe the object, like content type, last modified date, and custom data).
+  * Objects are identified by a unique **key** within a bucket (e.g., `my-folder/my-file.txt`).
+  * Individual objects can range from 0 bytes up to 5 TB (larger files can be uploaded using multipart upload).
 * **Keys:**
-    * The unique identifier for an object within a bucket. Essentially, the full path to the object within that bucket.
+  * The unique identifier for an object within a bucket. Essentially, the full path to the object within that bucket.
 
 ---
 
@@ -342,17 +342,17 @@ Understanding these fundamental components is key to working with S3:
 Beyond basic storage, S3 offers a rich set of features to build sophisticated solutions:
 
 * **Storage Classes:** Optimize costs and performance based on data access frequency.
-    * **S3 Standard:** Default, high durability, availability, and performance for frequently accessed data.
-    * **S3 Intelligent-Tiering:** Automatically moves data between two access tiers (frequent and infrequent) based on access patterns, optimizing costs without performance impact.
-    * **S3 Standard-Infrequent Access (S3 Standard-IA):** For data that is accessed less frequently but requires rapid access when needed. Lower storage cost than Standard, but higher retrieval cost.
-    * **S3 One Zone-Infrequent Access (S3 One Zone-IA):** Similar to S3 Standard-IA, but data is stored only in a single Availability Zone. Lower cost, but less resilient to AZ loss.
-    * **Amazon S3 Glacier & S3 Glacier Deep Archive:** Extremely low-cost archive storage for long-term data retention (minutes to hours for retrieval).
+  * **S3 Standard:** Default, high durability, availability, and performance for frequently accessed data.
+  * **S3 Intelligent-Tiering:** Automatically moves data between two access tiers (frequent and infrequent) based on access patterns, optimizing costs without performance impact.
+  * **S3 Standard-Infrequent Access (S3 Standard-IA):** For data that is accessed less frequently but requires rapid access when needed. Lower storage cost than Standard, but higher retrieval cost.
+  * **S3 One Zone-Infrequent Access (S3 One Zone-IA):** Similar to S3 Standard-IA, but data is stored only in a single Availability Zone. Lower cost, but less resilient to AZ loss.
+  * **Amazon S3 Glacier & S3 Glacier Deep Archive:** Extremely low-cost archive storage for long-term data retention (minutes to hours for retrieval).
 * **Versioning:** Keeps multiple versions of an object in the same bucket. Protects against accidental overwrites, deletions, and allows for easy rollback.
 * **Lifecycle Policies:** Automate the transition of objects between different storage classes or their expiration/deletion after a certain period, optimizing costs over time.
 * **Access Control:**
-    * **IAM Policies:** Define permissions for users and roles to access S3 resources.
-    * **Bucket Policies:** JSON-based policies attached directly to a bucket to grant permissions to AWS accounts, IAM users, or even public access.
-    * **Access Control Lists (ACLs):** Legacy method for basic read/write permissions at the object or bucket level.
+  * **IAM Policies:** Define permissions for users and roles to access S3 resources.
+  * **Bucket Policies:** JSON-based policies attached directly to a bucket to grant permissions to AWS accounts, IAM users, or even public access.
+  * **Access Control Lists (ACLs):** Legacy method for basic read/write permissions at the object or bucket level.
 * **Static Website Hosting:** Host static HTML, CSS, JavaScript, and other client-side files directly from an S3 bucket, making it a very cost-effective way to deploy websites.
 * **Event Notifications:** Configure S3 to send notifications (e.g., to AWS Lambda, SQS, SNS) when certain events occur (e.g., an object is created, deleted, or restored).
 * **Cross-Region Replication (CRR):** Automatically replicate objects stored in one S3 bucket to a bucket in a different AWS Region for disaster recovery or reduced latency for global users.
@@ -404,12 +404,12 @@ Mastering the AWS CLI unlocks a new level of efficiency and control over your AW
 
 The AWS CLI offers significant advantages for managing your cloud infrastructure:
 
-  * **Automation & Scripting:** Easily integrate AWS operations into shell scripts, CI/CD pipelines, and other automation workflows.
-  * **Rapid Prototyping & Testing:** Quickly provision, modify, and tear down resources for development and testing cycles.
-  * **Consistency:** Ensure consistent configuration across environments by scripting deployments rather than relying on manual clicks.
-  * **Cross-Platform Compatibility:** Available on Windows, macOS, and Linux, allowing you to manage AWS from your preferred operating system.
-  * **Beyond the Console:** Access features and options that might not be directly available or easily accessible through the web console.
-  * **Programmatic Access:** Provides a programmatic interface for AWS services, ideal for integrating with custom applications and tools.
+* **Automation & Scripting:** Easily integrate AWS operations into shell scripts, CI/CD pipelines, and other automation workflows.
+* **Rapid Prototyping & Testing:** Quickly provision, modify, and tear down resources for development and testing cycles.
+* **Consistency:** Ensure consistent configuration across environments by scripting deployments rather than relying on manual clicks.
+* **Cross-Platform Compatibility:** Available on Windows, macOS, and Linux, allowing you to manage AWS from your preferred operating system.
+* **Beyond the Console:** Access features and options that might not be directly available or easily accessible through the web console.
+* **Programmatic Access:** Provides a programmatic interface for AWS services, ideal for integrating with custom applications and tools.
 
 -----
 
@@ -417,7 +417,7 @@ The AWS CLI offers significant advantages for managing your cloud infrastructure
 
 The AWS CLI v2 is the latest major version and is recommended for most users. It includes an installer that bundles its dependencies.
 
-1.  **Download the Installer:**
+1. **Download the Installer:**
       * **Linux:**
 
         ```bash
@@ -451,13 +451,13 @@ The AWS CLI v2 is the latest major version and is recommended for most users. It
 
 After installation, the most critical step is configuring the CLI to connect to your AWS account.
 
-1.  **Run the `aws configure` command:**
+1. **Run the `aws configure` command:**
 
     ```bash
     aws configure
     ```
 
-2.  **Provide the following information interactively:**
+2. **Provide the following information interactively:**
 
       * **`AWS Access Key ID [None]:`** Your IAM user's Access Key ID (e.g., `AKIAIOSFODNN7EXAMPLE`).
           * **Important:** Avoid using your root account credentials. Always create an IAM user with least-privilege permissions for CLI access. For production, consider using IAM Roles for EC2 instances or temporary credentials.
@@ -475,7 +475,7 @@ After installation, the most critical step is configuring the CLI to connect to 
     Default output format [None]: json
     ```
 
-3.  **Using Profiles (Recommended for multiple accounts/roles):**
+3. **Using Profiles (Recommended for multiple accounts/roles):**
     You can set up multiple named profiles to easily switch between different AWS accounts or IAM roles:
 
     ```bash
@@ -497,10 +497,10 @@ The AWS CLI commands follow a consistent structure:
 
 `aws <service> <command> <subcommand> [options]`
 
-  * `<service>`: The AWS service you want to interact with (e.g., `s3`, `ec2`, `iam`, `lambda`).
-  * `<command>`: The action you want to perform on that service (e.g., `ls`, `describe-instances`, `list-users`).
-  * `<subcommand>`: Some commands have further sub-actions.
-  * `[options]`: Additional parameters to refine your command (e.g., `--bucket`, `--instance-ids`, `--query`).
+* `<service>`: The AWS service you want to interact with (e.g., `s3`, `ec2`, `iam`, `lambda`).
+* `<command>`: The action you want to perform on that service (e.g., `ls`, `describe-instances`, `list-users`).
+* `<subcommand>`: Some commands have further sub-actions.
+* `[options]`: Additional parameters to refine your command (e.g., `--bucket`, `--instance-ids`, `--query`).
 
 -----
 
@@ -508,46 +508,58 @@ The AWS CLI commands follow a consistent structure:
 
 Here are some common operations you can perform with the AWS CLI:
 
-  * **Amazon S3 (Simple Storage Service):**
+* **Amazon S3 (Simple Storage Service):**
 
-      * List all your S3 buckets:
+  * List all your S3 buckets:
+
         ```bash
         aws s3 ls
         ```
-      * Copy a local file to an S3 bucket:
+
+  * Copy a local file to an S3 bucket:
+
         ```bash
         aws s3 cp my-local-file.txt s3://my-unique-bucket-name/my-cloud-file.txt
         ```
-      * Sync a local directory with an S3 bucket (great for static website deployments):
+
+  * Sync a local directory with an S3 bucket (great for static website deployments):
+
         ```bash
         aws s3 sync ./my-local-website-folder/ s3://my-static-website-bucket/ --delete
         ```
 
-  * **Amazon EC2 (Elastic Compute Cloud):**
+* **Amazon EC2 (Elastic Compute Cloud):**
 
-      * List all running EC2 instances:
+  * List all running EC2 instances:
+
         ```bash
         aws ec2 describe-instances --filters "Name=instance-state-name,Values=running"
         ```
-      * Start a specific EC2 instance:
+
+  * Start a specific EC2 instance:
+
         ```bash
         aws ec2 start-instances --instance-ids i-0abcdef1234567890
         ```
-      * Stop a specific EC2 instance:
+
+  * Stop a specific EC2 instance:
+
         ```bash
         aws ec2 stop-instances --instance-ids i-0abcdef1234567890
         ```
 
-  * **AWS IAM (Identity and Access Management):**
+* **AWS IAM (Identity and Access Management):**
 
-      * List all IAM users in your account:
+  * List all IAM users in your account:
+
         ```bash
         aws iam list-users
         ```
 
-  * **Amazon CloudWatch Logs:**
+* **Amazon CloudWatch Logs:**
 
-      * List all log groups:
+  * List all log groups:
+
         ```bash
         aws logs describe-log-groups
         ```
@@ -558,15 +570,20 @@ Here are some common operations you can perform with the AWS CLI:
 
 You can control the output format of CLI commands using the `--output` flag or by setting a default in `aws configure`:
 
-  * `json` (default for `aws configure`): Ideal for scripting and programmatic parsing.
+* `json` (default for `aws configure`): Ideal for scripting and programmatic parsing.
+
     ```bash
     aws s3 ls --output json
     ```
-  * `text`: Simple text output, space-delimited, often used for simple grepping.
+
+* `text`: Simple text output, space-delimited, often used for simple grepping.
+
     ```bash
     aws s3 ls --output text
     ```
-  * `table`: Human-readable ASCII table format.
+
+* `table`: Human-readable ASCII table format.
+
     ```bash
     aws ec2 describe-instances --filters "Name=instance-state-name,Values=running" --output table
     ```
@@ -575,13 +592,13 @@ You can control the output format of CLI commands using the `--output` flag or b
 
 #### Best Practices for AWS CLI Usage 💡
 
-  * **Principle of Least Privilege:** Always use IAM users or roles with the minimum necessary permissions required for the tasks you're performing. Never use root account credentials for CLI access.
-  * **Use Profiles:** Organize your credentials and configurations using named profiles, especially if you work with multiple AWS accounts or roles.
-  * **Leverage `--query` (JMESPath):** For advanced filtering and transforming complex JSON output, learn to use the powerful `--query` option with JMESPath expressions.
-  * **Automate with Scripts:** Write shell scripts to automate repetitive tasks. This ensures consistency and saves time.
-  * **Error Handling:** In scripts, always check the exit code of AWS CLI commands (`$?` in bash) to handle errors gracefully.
-  * **Refer to Documentation & Help:** Use `aws help` to see a list of top-level commands, and `aws <service> help` or `aws <service> <command> help` for detailed information on specific services and commands.
-  * **Environment Variables for Temporary Credentials:** For CI/CD or temporary access, use environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`) for programmatic authentication, rather than storing static credentials.
+* **Principle of Least Privilege:** Always use IAM users or roles with the minimum necessary permissions required for the tasks you're performing. Never use root account credentials for CLI access.
+* **Use Profiles:** Organize your credentials and configurations using named profiles, especially if you work with multiple AWS accounts or roles.
+* **Leverage `--query` (JMESPath):** For advanced filtering and transforming complex JSON output, learn to use the powerful `--query` option with JMESPath expressions.
+* **Automate with Scripts:** Write shell scripts to automate repetitive tasks. This ensures consistency and saves time.
+* **Error Handling:** In scripts, always check the exit code of AWS CLI commands (`$?` in bash) to handle errors gracefully.
+* **Refer to Documentation & Help:** Use `aws help` to see a list of top-level commands, and `aws <service> help` or `aws <service> <command> help` for detailed information on specific services and commands.
+* **Environment Variables for Temporary Credentials:** For CI/CD or temporary access, use environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`) for programmatic authentication, rather than storing static credentials.
 
 -----
 
@@ -602,8 +619,8 @@ By exploring common operations for key services like S3, EC2, Lambda, and IAM, y
 
 Before you begin, ensure you have:
 
-  * **AWS CLI v2 Installed:** Refer to the "AWS CLI" README for installation instructions.
-  * **A Configured AWS Profile:** Run `aws configure` to set up your credentials and default region.
+* **AWS CLI v2 Installed:** Refer to the "AWS CLI" README for installation instructions.
+* **A Configured AWS Profile:** Run `aws configure` to set up your credentials and default region.
 
 -----
 
@@ -613,15 +630,15 @@ Before you begin, ensure you have:
 
 S3 is the perfect starting point for CLI management due to its straightforward command structure (`aws s3` vs `aws s3api`).
 
-  * **List Your Buckets:**
+* **List Your Buckets:**
 
     ```bash
     aws s3 ls
     ```
 
-  * **Create a New Bucket:**
+* **Create a New Bucket:**
 
-      * **Note:** Bucket names must be globally unique.
+  * **Note:** Bucket names must be globally unique.
 
     <!-- end list -->
 
@@ -629,11 +646,11 @@ S3 is the perfect starting point for CLI management due to its straightforward c
     aws s3api create-bucket --bucket my-unique-cli-bucket-2025 --region us-east-1 --create-bucket-configuration LocationConstraint=us-east-1
     ```
 
-      * This uses the lower-level `s3api` command, which provides more options than the simpler `aws s3`.
+  * This uses the lower-level `s3api` command, which provides more options than the simpler `aws s3`.
 
-  * **Copy Files to a Bucket:**
+* **Copy Files to a Bucket:**
 
-      * The `s3 cp` command is a powerful tool for transferring files.
+  * The `s3 cp` command is a powerful tool for transferring files.
 
     <!-- end list -->
 
@@ -645,9 +662,9 @@ S3 is the perfect starting point for CLI management due to its straightforward c
     aws s3 cp s3://my-unique-cli-bucket-2025/folder/local-file.txt .
     ```
 
-  * **Sync a Local Directory with a Bucket:**
+* **Sync a Local Directory with a Bucket:**
 
-      * The `s3 sync` command is a favorite for automating backups or deploying static websites.
+  * The `s3 sync` command is a favorite for automating backups or deploying static websites.
 
     <!-- end list -->
 
@@ -655,9 +672,9 @@ S3 is the perfect starting point for CLI management due to its straightforward c
     aws s3 sync ./my-local-website-folder/ s3://my-unique-cli-bucket-2025/ --delete
     ```
 
-      * The `--delete` flag removes files from S3 that are no longer in the local directory, ensuring a true synchronization.
+  * The `--delete` flag removes files from S3 that are no longer in the local directory, ensuring a true synchronization.
 
-  * **Delete a Bucket:**
+* **Delete a Bucket:**
 
     ```bash
     # Note: The bucket must be empty.
@@ -669,9 +686,9 @@ S3 is the perfect starting point for CLI management due to its straightforward c
 
 The CLI gives you granular control over your EC2 instances without touching the console.
 
-  * **Launch a New EC2 Instance:**
+* **Launch a New EC2 Instance:**
 
-      * This is a complex command, but shows the power of the CLI to define every parameter.
+  * This is a complex command, but shows the power of the CLI to define every parameter.
 
     <!-- end list -->
 
@@ -679,11 +696,11 @@ The CLI gives you granular control over your EC2 instances without touching the 
     aws ec2 run-instances --image-id ami-013146447814a0149 --count 1 --instance-type t2.micro --key-name my-ssh-key --security-group-ids sg-abcdef1234567890
     ```
 
-      * You can capture the output and save the new instance ID for later use in scripts.
+  * You can capture the output and save the new instance ID for later use in scripts.
 
-  * **List and Filter Instances:**
+* **List and Filter Instances:**
 
-      * This is a common task. You can filter by state, tags, and more.
+  * This is a common task. You can filter by state, tags, and more.
 
     <!-- end list -->
 
@@ -695,7 +712,7 @@ The CLI gives you granular control over your EC2 instances without touching the 
     aws ec2 describe-instances --filters "Name=instance-state-name,Values=running" --query 'Reservations[*].Instances[*].[InstanceId,PublicIpAddress]' --output text
     ```
 
-  * **Start, Stop, and Terminate Instances:**
+* **Start, Stop, and Terminate Instances:**
 
     ```bash
     # Stop a specific instance
@@ -712,9 +729,9 @@ The CLI gives you granular control over your EC2 instances without touching the 
 
 The CLI is perfect for managing the full lifecycle of your serverless functions, including deployment.
 
-  * **Create a New Lambda Function:**
+* **Create a New Lambda Function:**
 
-      * This example assumes you have a zip file of your function code.
+  * This example assumes you have a zip file of your function code.
 
     <!-- end list -->
 
@@ -727,9 +744,9 @@ The CLI is perfect for managing the full lifecycle of your serverless functions,
         --zip-file fileb://function.zip
     ```
 
-  * **Invoke a Function:**
+* **Invoke a Function:**
 
-      * Use the `--payload` flag to send a JSON payload to your function.
+  * Use the `--payload` flag to send a JSON payload to your function.
 
     <!-- end list -->
 
@@ -737,7 +754,7 @@ The CLI is perfect for managing the full lifecycle of your serverless functions,
     aws lambda invoke --function-name MyCLIFunction --payload '{"key": "value"}' output.json
     ```
 
-  * **Update Function Code:**
+* **Update Function Code:**
 
     ```bash
     aws lambda update-function-code --function-name MyCLIFunction --zip-file fileb://updated_function.zip
@@ -747,15 +764,15 @@ The CLI is perfect for managing the full lifecycle of your serverless functions,
 
 Managing users, roles, and policies is a core security task that can be scripted with the CLI.
 
-  * **Create a New IAM User:**
+* **Create a New IAM User:**
 
     ```bash
     aws iam create-user --user-name my-cli-user
     ```
 
-  * **Attach a Policy to a User:**
+* **Attach a Policy to a User:**
 
-      * This attaches the `AmazonS3ReadOnlyAccess` policy, a good practice for demonstrating the principle of least privilege.
+  * This attaches the `AmazonS3ReadOnlyAccess` policy, a good practice for demonstrating the principle of least privilege.
 
     <!-- end list -->
 
@@ -769,9 +786,9 @@ Managing users, roles, and policies is a core security task that can be scripted
 
 To truly master the CLI for management, go beyond basic commands.
 
-  * **Filtering with `--query` (JMESPath):**
+* **Filtering with `--query` (JMESPath):**
 
-      * This is the most powerful CLI feature for handling complex JSON output.
+  * This is the most powerful CLI feature for handling complex JSON output.
 
     <!-- end list -->
 
@@ -780,11 +797,11 @@ To truly master the CLI for management, go beyond basic commands.
     aws ec2 describe-instances --filters "Name=instance-state-name,Values=running" --query 'Reservations[*].Instances[*].{ID:InstanceId,PublicIP:PublicIpAddress}' --output table
     ```
 
-      * **Tip:** Use `jq` (a command-line JSON processor) for even more advanced parsing and manipulation of CLI output.
+  * **Tip:** Use `jq` (a command-line JSON processor) for even more advanced parsing and manipulation of CLI output.
 
-  * **Using a JSON File for Complex Input:**
+* **Using a JSON File for Complex Input:**
 
-      * For commands with complex JSON parameters (like bucket policies), it's cleaner to write the JSON in a file and reference it.
+  * For commands with complex JSON parameters (like bucket policies), it's cleaner to write the JSON in a file and reference it.
 
     <!-- end list -->
 
@@ -809,9 +826,9 @@ To truly master the CLI for management, go beyond basic commands.
     aws s3api put-bucket-policy --bucket my-unique-cli-bucket-2025 --policy file://policy.json
     ```
 
-  * **Handling Pagination:**
+* **Handling Pagination:**
 
-      * By default, the CLI returns a certain number of results per page. You can override this.
+  * By default, the CLI returns a certain number of results per page. You can override this.
 
     <!-- end list -->
 
@@ -827,12 +844,13 @@ To truly master the CLI for management, go beyond basic commands.
 
 #### Best Practices for CLI-based Management 💡
 
-  * **Start with `--dry-run`:** For commands that modify resources (like `ec2 run-instances`), use the `--dry-run` flag to validate the syntax and permissions without actually performing the action.
-  * **Use `aws help` frequently:** It's your best friend. Use `aws <service> help` and `aws <service> <command> help` to explore options.
-  * **Redirect Output:** Send command output to files (`aws s3 ls > buckets.txt`) for logging or later analysis.
-  * **Test in Non-Production:** Always test your scripts and complex commands in a development or staging environment before running them in production.
-  * **Secure Your Scripts:** Never hardcode credentials in your scripts. Use IAM roles, environment variables, or profiles.
-  * **Pipe to `jq`:** For scripting, piping the CLI's JSON output to `jq` is a standard and powerful practice for parsing and filtering.
+* **Start with `--dry-run`:** For commands that modify resources (like `ec2 run-instances`), use the `--dry-run` flag to validate the syntax and permissions without actually performing the action.
+* **Use `aws help` frequently:** It's your best friend. Use `aws <service> help` and `aws <service> <command> help` to explore options.
+* **Redirect Output:** Send command output to files (`aws s3 ls > buckets.txt`) for logging or later analysis.
+* **Test in Non-Production:** Always test your scripts and complex commands in a development or staging environment before running them in production.
+* **Secure Your Scripts:** Never hardcode credentials in your scripts. Use IAM roles, environment variables, or profiles.
+* **Pipe to `jq`:** For scripting, piping the CLI's JSON output to `jq` is a standard and powerful practice for parsing and filtering.
+
     ```bash
     aws ec2 describe-instances | jq '.Reservations[].Instances[].PublicIpAddress'
     ```
@@ -842,7 +860,6 @@ To truly master the CLI for management, go beyond basic commands.
 By embracing the AWS CLI, you transition from a reactive cloud administrator to a proactive cloud engineer. You can build scripts that provision entire application stacks, manage resources with surgical precision, and create repeatable, auditable infrastructure-as-code workflows.
 
 -----
-
 
 -----
 
@@ -858,8 +875,9 @@ Unlike JUnit XML reports, which are parsed for summary statistics, HTML reports 
 
 Before you begin, ensure you have:
 
-  * **HTML Report Generation:** Your testing framework or build process is configured to **generate HTML output files**. This is crucial, as CI/CD tools primarily function by archiving these files.
-      * **Example (Cypress with `mochawesome` for HTML reports):**
+* **HTML Report Generation:** Your testing framework or build process is configured to **generate HTML output files**. This is crucial, as CI/CD tools primarily function by archiving these files.
+  * **Example (Cypress with `mochawesome` for HTML reports):**
+
         ```javascript
         // cypress.config.js
         const { defineConfig } = require('cypress');
@@ -883,7 +901,9 @@ Before you begin, ensure you have:
           },
         });
         ```
-      * **Example (Playwright with default HTML reporter):**
+
+  * **Example (Playwright with default HTML reporter):**
+
         ```javascript
         // playwright.config.ts
         import { defineConfig } from '@playwright/test';
@@ -895,7 +915,8 @@ Before you begin, ensure you have:
           // ...
         });
         ```
-  * **An Active CI/CD Pipeline:** You have an existing CI/CD pipeline (e.g., Jenkins, GitLab CI/CD, GitHub Actions, Azure DevOps, CircleCI) where your tests are executed.
+
+* **An Active CI/CD Pipeline:** You have an existing CI/CD pipeline (e.g., Jenkins, GitLab CI/CD, GitHub Actions, Azure DevOps, CircleCI) where your tests are executed.
 
 -----
 
@@ -905,15 +926,16 @@ Before you begin, ensure you have:
 
 Verify that your tests are indeed producing the desired HTML files.
 
-  * **Action:** Run your tests locally.
-  * **Verification:** After the test run, check the specified output directory (e.g., `cypress/reports/mochawesome`, `playwright-report/`) for `.html` files. These are the reports we aim to publish.
+* **Action:** Run your tests locally.
+* **Verification:** After the test run, check the specified output directory (e.g., `cypress/reports/mochawesome`, `playwright-report/`) for `.html` files. These are the reports we aim to publish.
 
 #### Step 2: Integrate Test Execution into Your CI/CD Pipeline ⚙️
 
 Your pipeline needs a step that runs your tests and thus generates the HTML reports.
 
-  * **Action:** Locate the appropriate stage or job in your CI/CD pipeline configuration. Add a command to execute your tests.
-  * **Example (Node.js project running Cypress):**
+* **Action:** Locate the appropriate stage or job in your CI/CD pipeline configuration. Add a command to execute your tests.
+* **Example (Node.js project running Cypress):**
+
     ```yaml
     # In your CI/CD config file (e.g., .gitlab-ci.yml, .github/workflows/main.yml)
     # ...
@@ -927,13 +949,13 @@ Your pipeline needs a step that runs your tests and thus generates the HTML repo
 
 This is the most critical step for publishing HTML reports. Since CI/CD tools generally don't "display" HTML directly in their UI like JUnit, we make them accessible by archiving them as artifacts.
 
-  * **Action:** Configure your CI/CD pipeline step to store the generated HTML files (and any related assets like CSS/JS) as build artifacts.
+* **Action:** Configure your CI/CD pipeline step to store the generated HTML files (and any related assets like CSS/JS) as build artifacts.
 
-  * **Path:** Specify the exact directory and/or file pattern where your HTML reports (and their supporting files/folders) are generated. It's often best to archive the entire report directory.
+* **Path:** Specify the exact directory and/or file pattern where your HTML reports (and their supporting files/folders) are generated. It's often best to archive the entire report directory.
 
-  * **Example CI/CD Configurations:**
+* **Example CI/CD Configurations:**
 
-      * **Jenkins (Pipeline Script - `Jenkinsfile`):**
+  * **Jenkins (Pipeline Script - `Jenkinsfile`):**
 
         ```groovy
         stage('Archive HTML Report') {
@@ -943,9 +965,9 @@ This is the most critical step for publishing HTML reports. Since CI/CD tools ge
         }
         ```
 
-          * For **Freestyle projects**, add a "Archive the artifacts" post-build action.
+    * For **Freestyle projects**, add a "Archive the artifacts" post-build action.
 
-      * **GitLab CI/CD (`.gitlab-ci.yml`):**
+  * **GitLab CI/CD (`.gitlab-ci.yml`):**
 
         ````yaml
         e2e_tests:
@@ -970,7 +992,7 @@ This is the most critical step for publishing HTML reports. Since CI/CD tools ge
 
         ````
 
-      * **GitHub Actions (`.github/workflows/main.yml`):**
+  * **GitHub Actions (`.github/workflows/main.yml`):**
 
         ```yaml
         # ...
@@ -990,7 +1012,7 @@ This is the most critical step for publishing HTML reports. Since CI/CD tools ge
                   retention-days: 7 # Optional: how long to keep the artifact
         ```
 
-      * **Azure DevOps (`azure-pipelines.yml`):**
+  * **Azure DevOps (`azure-pipelines.yml`):**
 
         ```yaml
         - task: PublishBuildArtifacts@1
@@ -1001,7 +1023,7 @@ This is the most critical step for publishing HTML reports. Since CI/CD tools ge
           displayName: 'Publish HTML Report Artifact'
         ```
 
-      * **CircleCI (`.circleci/config.yml`):**
+  * **CircleCI (`.circleci/config.yml`):**
 
         ```yaml
         - store_artifacts:
@@ -1013,28 +1035,27 @@ This is the most critical step for publishing HTML reports. Since CI/CD tools ge
 
 Once the HTML reports are archived, you need to know how to access them from your CI/CD platform's UI.
 
-  * **Action:** After a pipeline run, navigate to the specific job/run details page.
-  * **Verification:** Look for a section like "Artifacts," "Build Artifacts," or "Job artifacts."
-      * Download the archived HTML report bundle.
-      * Unzip it (if necessary).
-      * Open the main `.html` file (e.g., `index.html`, `mochawesome.html`, `report.html`) in your web browser.
+* **Action:** After a pipeline run, navigate to the specific job/run details page.
+* **Verification:** Look for a section like "Artifacts," "Build Artifacts," or "Job artifacts."
+  * Download the archived HTML report bundle.
+  * Unzip it (if necessary).
+  * Open the main `.html` file (e.g., `index.html`, `mochawesome.html`, `report.html`) in your web browser.
 
 #### Step 5: Run the Pipeline and Verify 📊
 
 Execute your pipeline to ensure everything is set up correctly.
 
-  * **Action:** Trigger a new build/pipeline run.
-  * **Verification:**
-    1.  Confirm the "Test Execution" step completes successfully.
-    2.  Confirm the "Archive/Publish Artifact" step also completes.
-    3.  Locate the artifacts section for that specific pipeline run.
-    4.  Download the HTML report artifact.
-    5.  Open the main HTML file in your browser to confirm the report renders correctly and contains your test results.
+* **Action:** Trigger a new build/pipeline run.
+* **Verification:**
+    1. Confirm the "Test Execution" step completes successfully.
+    2. Confirm the "Archive/Publish Artifact" step also completes.
+    3. Locate the artifacts section for that specific pipeline run.
+    4. Download the HTML report artifact.
+    5. Open the main HTML file in your browser to confirm the report renders correctly and contains your test results.
 
 -----
 
 By following these steps, you've successfully published your HTML test reports, providing a rich, visual, and interactive way to review your E2E test results directly from your CI/CD pipeline\!
-
 
 -----
 
@@ -1050,9 +1071,9 @@ This guide provides a step-by-step, best-practice approach to managing your AWS 
 
 When you hardcode AWS credentials in your pipeline file, you create a number of security vulnerabilities:
 
-  * **Repository Exposure:** Anyone with access to your project's Git history can view your credentials.
-  * **Pipeline Log Exposure:** Your credentials can be accidentally printed in pipeline logs, making them visible to anyone with job access.
-  * **Lack of Control:** You cannot easily rotate or revoke credentials without changing code and committing the change, which is a slow and risky process.
+* **Repository Exposure:** Anyone with access to your project's Git history can view your credentials.
+* **Pipeline Log Exposure:** Your credentials can be accidentally printed in pipeline logs, making them visible to anyone with job access.
+* **Lack of Control:** You cannot easily rotate or revoke credentials without changing code and committing the change, which is a slow and risky process.
 
 -----
 
@@ -1060,9 +1081,9 @@ When you hardcode AWS credentials in your pipeline file, you create a number of 
 
 GitLab's CI/CD variables provide a safe and effective solution. By storing your AWS credentials as variables in the GitLab UI, you get the following benefits:
 
-  * **Separation of Concerns:** Your sensitive credentials are no longer stored in your codebase.
-  * **Masked & Protected:** You can mask the variables so they are hidden in job logs, and protect them so they are only available on protected branches and tags (e.g., `main`, `release`).
-  * **Centralized Management:** Credentials can be easily updated or rotated in one place without touching your `.gitlab-ci.yml` file.
+* **Separation of Concerns:** Your sensitive credentials are no longer stored in your codebase.
+* **Masked & Protected:** You can mask the variables so they are hidden in job logs, and protect them so they are only available on protected branches and tags (e.g., `main`, `release`).
+* **Centralized Management:** Credentials can be easily updated or rotated in one place without touching your `.gitlab-ci.yml` file.
 
 -----
 
@@ -1072,20 +1093,20 @@ Follow these three steps to set up secure AWS access for your GitLab pipelines.
 
 #### Part 1: AWS IAM Setup
 
-1.  **Create an IAM User:** In the AWS Management Console, navigate to the **IAM service**.
-2.  **Apply the Principle of Least Privilege:** Create a new IAM User specifically for your GitLab runner. Grant this user only the necessary permissions required by your CI/CD job. For a simple test, you might attach a policy like `AmazonS3ReadOnlyAccess`.
-3.  **Generate Credentials:** Create an **Access Key** and **Secret Key** for this new IAM User. **Save these securely**, as they will only be shown once.
+1. **Create an IAM User:** In the AWS Management Console, navigate to the **IAM service**.
+2. **Apply the Principle of Least Privilege:** Create a new IAM User specifically for your GitLab runner. Grant this user only the necessary permissions required by your CI/CD job. For a simple test, you might attach a policy like `AmazonS3ReadOnlyAccess`.
+3. **Generate Credentials:** Create an **Access Key** and **Secret Key** for this new IAM User. **Save these securely**, as they will only be shown once.
 
 #### Part 2: GitLab CI/CD Variables Setup
 
-1.  **Navigate to Variables:** In your GitLab project, go to **`Settings`** -\> **`CI/CD`**.
-2.  **Expand Variables:** Find the **`Variables`** section and click **`Expand`**.
-3.  **Add Your AWS Credentials:** Create two new variables:
+1. **Navigate to Variables:** In your GitLab project, go to **`Settings`** -\> **`CI/CD`**.
+2. **Expand Variables:** Find the **`Variables`** section and click **`Expand`**.
+3. **Add Your AWS Credentials:** Create two new variables:
       * **Key:** `AWS_ACCESS_KEY_ID`
       * **Value:** Paste your Access Key from AWS.
       * **Key:** `AWS_SECRET_ACCESS_KEY`
       * **Value:** Paste your Secret Key from AWS.
-4.  **Protect & Mask:** For both variables, make sure to check the **`Protect variable`** and **`Mask variable`** boxes. This is the most critical step for security.
+4. **Protect & Mask:** For both variables, make sure to check the **`Protect variable`** and **`Mask variable`** boxes. This is the most critical step for security.
 
 #### Part 3: Pipeline Integration
 
@@ -1130,10 +1151,10 @@ list_s3_buckets:
 
 ### Advanced Best Practices for Production 💡
 
-  * **Use IAM Roles for CI/CD:** For a more secure, long-term solution, consider using OpenID Connect (OIDC) with GitLab. This allows your CI/CD job to assume a specific IAM Role, providing temporary credentials without you ever having to manage static Access Keys.
-  * **Environment-Specific Variables:** For a `staging` pipeline, use a separate IAM user with permissions for the staging environment. For `production`, use a dedicated, more tightly controlled IAM user.
-  * **Set Expiration Dates:** When creating credentials, set a reminder to rotate them regularly (e.g., every 90 days).
-  * **Monitor and Audit:** Use AWS CloudTrail to log and monitor the API calls made by the IAM user, providing an audit trail of your pipeline's activity.
+* **Use IAM Roles for CI/CD:** For a more secure, long-term solution, consider using OpenID Connect (OIDC) with GitLab. This allows your CI/CD job to assume a specific IAM Role, providing temporary credentials without you ever having to manage static Access Keys.
+* **Environment-Specific Variables:** For a `staging` pipeline, use a separate IAM user with permissions for the staging environment. For `production`, use a dedicated, more tightly controlled IAM user.
+* **Set Expiration Dates:** When creating credentials, set a reminder to rotate them regularly (e.g., every 90 days).
+* **Monitor and Audit:** Use AWS CloudTrail to log and monitor the API calls made by the IAM user, providing an audit trail of your pipeline's activity.
 
 -----
 -----
@@ -1148,11 +1169,11 @@ IAM is the cornerstone of security in AWS. It's a service that enables you to se
 
 #### The "Why IAM is Your First and Foremost Security Tool"
 
-  * **Enforces the Principle of Least Privilege:** You grant only the permissions required to perform a specific task, minimizing the potential blast radius of a security breach.
-  * **Granular Control:** You can define highly specific permissions, down to the level of individual resources and actions (e.g., `s3:GetObject` on a specific file in a specific bucket).
-  * **Auditability:** IAM provides logs that track who accessed your resources, when they did it, and from where, giving you a clear security trail.
-  * **Separation of Duties:** You can create different roles and permissions for developers, administrators, auditors, and other team members, ensuring no single entity has unchecked power.
-  * **Secure Automation:** For applications and services, IAM provides a secure, credentials-free way to interact with other AWS resources, preventing the need to hardcode access keys in your code.
+* **Enforces the Principle of Least Privilege:** You grant only the permissions required to perform a specific task, minimizing the potential blast radius of a security breach.
+* **Granular Control:** You can define highly specific permissions, down to the level of individual resources and actions (e.g., `s3:GetObject` on a specific file in a specific bucket).
+* **Auditability:** IAM provides logs that track who accessed your resources, when they did it, and from where, giving you a clear security trail.
+* **Separation of Duties:** You can create different roles and permissions for developers, administrators, auditors, and other team members, ensuring no single entity has unchecked power.
+* **Secure Automation:** For applications and services, IAM provides a secure, credentials-free way to interact with other AWS resources, preventing the need to hardcode access keys in your code.
 
 -----
 
@@ -1162,32 +1183,33 @@ IAM is built on a few core concepts that work together to define and enforce per
 
 ##### 1\. IAM Users 👥
 
-  * A **user** represents a person or an application that needs to interact with AWS.
-  * Users are assigned **permanent credentials** (a password for the console and/or an access key/secret key pair for programmatic access).
-  * **Best Practice:** Do not share user credentials. Each person or application should have their own unique IAM user.
+* A **user** represents a person or an application that needs to interact with AWS.
+* Users are assigned **permanent credentials** (a password for the console and/or an access key/secret key pair for programmatic access).
+* **Best Practice:** Do not share user credentials. Each person or application should have their own unique IAM user.
 
 ##### 2\. IAM Groups
 
-  * A **group** is a collection of IAM users.
-  * You can attach an IAM policy to a group, and all users in that group will inherit the permissions defined in that policy.
-  * **Best Practice:** Use groups to simplify management. Instead of attaching a policy to 20 individual users, attach it once to a group, and simply add or remove users from the group as needed.
+* A **group** is a collection of IAM users.
+* You can attach an IAM policy to a group, and all users in that group will inherit the permissions defined in that policy.
+* **Best Practice:** Use groups to simplify management. Instead of attaching a policy to 20 individual users, attach it once to a group, and simply add or remove users from the group as needed.
 
 ##### 3\. IAM Roles 🛡️
 
-  * A **role** is an IAM identity that has specific permissions but is not associated with a specific user.
-  * Roles are designed to be **assumed** by a trusted entity (an AWS service like EC2 or Lambda, another AWS account, or a federated user).
-  * When a role is assumed, it provides **temporary credentials**. This is the most secure way for services to interact with each other, as you don't need to manage or rotate long-lived access keys.
-  * **Best Practice:** Always use IAM roles to grant permissions to services like EC2 instances, Lambda functions, or ECS tasks, rather than attaching policies to IAM users with hardcoded credentials.
+* A **role** is an IAM identity that has specific permissions but is not associated with a specific user.
+* Roles are designed to be **assumed** by a trusted entity (an AWS service like EC2 or Lambda, another AWS account, or a federated user).
+* When a role is assumed, it provides **temporary credentials**. This is the most secure way for services to interact with each other, as you don't need to manage or rotate long-lived access keys.
+* **Best Practice:** Always use IAM roles to grant permissions to services like EC2 instances, Lambda functions, or ECS tasks, rather than attaching policies to IAM users with hardcoded credentials.
 
 ##### 4\. IAM Policies 📜
 
-  * A **policy** is a JSON document that explicitly defines permissions.
-  * Policies are the heart of IAM; they state exactly what actions are allowed or denied on which resources.
-  * **Key Policy Elements:**
-      * `Effect`: `Allow` or `Deny`
-      * `Action`: The specific AWS API actions (e.g., `s3:GetObject`, `ec2:StartInstances`).
-      * `Resource`: The ARN of the resource to which the action applies (e.g., `arn:aws:s3:::my-bucket-name/*`).
-  * **Example: A Simple S3 Read-Only Policy**
+* A **policy** is a JSON document that explicitly defines permissions.
+* Policies are the heart of IAM; they state exactly what actions are allowed or denied on which resources.
+* **Key Policy Elements:**
+  * `Effect`: `Allow` or `Deny`
+  * `Action`: The specific AWS API actions (e.g., `s3:GetObject`, `ec2:StartInstances`).
+  * `Resource`: The ARN of the resource to which the action applies (e.g., `arn:aws:s3:::my-bucket-name/*`).
+* **Example: A Simple S3 Read-Only Policy**
+
     ```json
     {
         "Version": "2012-10-17",
@@ -1210,11 +1232,11 @@ IAM is built on a few core concepts that work together to define and enforce per
 
 Here is a common, secure workflow for a new developer who needs read-only access to a specific S3 bucket:
 
-1.  **Create an IAM User:** Create a new user account named `jane-doe-developer`.
-2.  **Create an IAM Group:** Create a group named `s3-readonly-developers`.
-3.  **Create a Policy:** Create and save the S3 read-only JSON policy above as a managed policy.
-4.  **Attach the Policy:** Attach the new read-only policy to the `s3-readonly-developers` group.
-5.  **Add User to Group:** Add the `jane-doe-developer` user to the `s3-readonly-developers` group.
+1. **Create an IAM User:** Create a new user account named `jane-doe-developer`.
+2. **Create an IAM Group:** Create a group named `s3-readonly-developers`.
+3. **Create a Policy:** Create and save the S3 read-only JSON policy above as a managed policy.
+4. **Attach the Policy:** Attach the new read-only policy to the `s3-readonly-developers` group.
+5. **Add User to Group:** Add the `jane-doe-developer` user to the `s3-readonly-developers` group.
 
 Now, Jane has access keys that can only be used to read objects from `my-company-data-bucket`, and nothing else. This is the **principle of least privilege** in action.
 
@@ -1222,14 +1244,14 @@ Now, Jane has access keys that can only be used to read objects from `my-company
 
 #### Key IAM Best Practices: Your Security Checklist 🛡️
 
-  * **Enforce the Principle of Least Privilege:** Start with no permissions and add only what is necessary.
-  * **Enable Multi-Factor Authentication (MFA):** **Mandatory** for your root account and highly recommended for all IAM users with elevated privileges.
-  * **Use IAM Roles Over IAM Users:** For AWS services, use roles to provide temporary credentials and avoid managing long-lived access keys.
-  * **Rotate Credentials Regularly:** For IAM users that require long-lived keys, set a schedule to rotate them.
-  * **Don't Share Credentials:** Each user should have their own.
-  * **Review Permissions Regularly:** Use the IAM Access Advisor and other tools to audit and trim unnecessary permissions.
-  * **Utilize IAM Access Analyzer:** A powerful tool that helps you identify and mitigate unintended access to your resources by external entities.
-  * **Lock Down Your Root Account:** Use it only for critical, one-time tasks. Never use it for day-to-day operations.
+* **Enforce the Principle of Least Privilege:** Start with no permissions and add only what is necessary.
+* **Enable Multi-Factor Authentication (MFA):** **Mandatory** for your root account and highly recommended for all IAM users with elevated privileges.
+* **Use IAM Roles Over IAM Users:** For AWS services, use roles to provide temporary credentials and avoid managing long-lived access keys.
+* **Rotate Credentials Regularly:** For IAM users that require long-lived keys, set a schedule to rotate them.
+* **Don't Share Credentials:** Each user should have their own.
+* **Review Permissions Regularly:** Use the IAM Access Advisor and other tools to audit and trim unnecessary permissions.
+* **Utilize IAM Access Analyzer:** A powerful tool that helps you identify and mitigate unintended access to your resources by external entities.
+* **Lock Down Your Root Account:** Use it only for critical, one-time tasks. Never use it for day-to-day operations.
 
 -----
 
@@ -1237,8 +1259,8 @@ Now, Jane has access keys that can only be used to read objects from `my-company
 
 IAM is your part of the **Shared Responsibility Model**.
 
-  * **AWS is responsible for security *of* the cloud:** This includes the underlying infrastructure, hardware, and global physical security of the data centers.
-  * **You are responsible for security *in* the cloud:** This includes managing your IAM identities and permissions, configuring network security, encrypting your data, and protecting your application code.
+* **AWS is responsible for security *of* the cloud:** This includes the underlying infrastructure, hardware, and global physical security of the data centers.
+* **You are responsible for security *in* the cloud:** This includes managing your IAM identities and permissions, configuring network security, encrypting your data, and protecting your application code.
 
 IAM is the primary tool that empowers you to fulfill your security responsibilities in the AWS Cloud.
 
@@ -1257,9 +1279,9 @@ This guide provides a step-by-step, best-practice approach to managing your AWS 
 
 When you hardcode AWS credentials in your pipeline file, you create a number of security vulnerabilities:
 
-  * **Repository Exposure:** Anyone with access to your project's Git history can view your credentials.
-  * **Pipeline Log Exposure:** Your credentials can be accidentally printed in pipeline logs, making them visible to anyone with job access.
-  * **Lack of Control:** You cannot easily rotate or revoke credentials without changing code and committing the change, which is a slow and risky process.
+* **Repository Exposure:** Anyone with access to your project's Git history can view your credentials.
+* **Pipeline Log Exposure:** Your credentials can be accidentally printed in pipeline logs, making them visible to anyone with job access.
+* **Lack of Control:** You cannot easily rotate or revoke credentials without changing code and committing the change, which is a slow and risky process.
 
 -----
 
@@ -1267,9 +1289,9 @@ When you hardcode AWS credentials in your pipeline file, you create a number of 
 
 GitLab's CI/CD variables provide a safe and effective solution. By storing your AWS credentials as variables in the GitLab UI, you get the following benefits:
 
-  * **Separation of Concerns:** Your sensitive credentials are no longer stored in your codebase.
-  * **Masked & Protected:** You can mask the variables so they are hidden in job logs, and protect them so they are only available on protected branches and tags (e.g., `main`, `release`).
-  * **Centralized Management:** Credentials can be easily updated or rotated in one place without touching your `.gitlab-ci.yml` file.
+* **Separation of Concerns:** Your sensitive credentials are no longer stored in your codebase.
+* **Masked & Protected:** You can mask the variables so they are hidden in job logs, and protect them so they are only available on protected branches and tags (e.g., `main`, `release`).
+* **Centralized Management:** Credentials can be easily updated or rotated in one place without touching your `.gitlab-ci.yml` file.
 
 -----
 
@@ -1279,20 +1301,20 @@ Follow these three steps to set up secure AWS access for your GitLab pipelines.
 
 #### Part 1: AWS IAM Setup
 
-1.  **Create an IAM User:** In the AWS Management Console, navigate to the **IAM service**.
-2.  **Apply the Principle of Least Privilege:** Create a new IAM User specifically for your GitLab runner. Grant this user only the necessary permissions required by your CI/CD job. For a simple test, you might attach a policy like `AmazonS3ReadOnlyAccess`.
-3.  **Generate Credentials:** Create an **Access Key** and **Secret Key** for this new IAM User. **Save these securely**, as they will only be shown once.
+1. **Create an IAM User:** In the AWS Management Console, navigate to the **IAM service**.
+2. **Apply the Principle of Least Privilege:** Create a new IAM User specifically for your GitLab runner. Grant this user only the necessary permissions required by your CI/CD job. For a simple test, you might attach a policy like `AmazonS3ReadOnlyAccess`.
+3. **Generate Credentials:** Create an **Access Key** and **Secret Key** for this new IAM User. **Save these securely**, as they will only be shown once.
 
 #### Part 2: GitLab CI/CD Variables Setup
 
-1.  **Navigate to Variables:** In your GitLab project, go to **`Settings`** -\> **`CI/CD`**.
-2.  **Expand Variables:** Find the **`Variables`** section and click **`Expand`**.
-3.  **Add Your AWS Credentials:** Create two new variables:
+1. **Navigate to Variables:** In your GitLab project, go to **`Settings`** -\> **`CI/CD`**.
+2. **Expand Variables:** Find the **`Variables`** section and click **`Expand`**.
+3. **Add Your AWS Credentials:** Create two new variables:
       * **Key:** `AWS_ACCESS_KEY_ID`
       * **Value:** Paste your Access Key from AWS.
       * **Key:** `AWS_SECRET_ACCESS_KEY`
       * **Value:** Paste your Secret Key from AWS.
-4.  **Protect & Mask:** For both variables, make sure to check the **`Protect variable`** and **`Mask variable`** boxes. This is the most critical step for security.
+4. **Protect & Mask:** For both variables, make sure to check the **`Protect variable`** and **`Mask variable`** boxes. This is the most critical step for security.
 
 #### Part 3: Pipeline Integration
 
@@ -1337,12 +1359,13 @@ list_s3_buckets:
 
 ### Advanced Best Practices for Production 💡
 
-  * **Use IAM Roles for CI/CD:** For a more secure, long-term solution, consider using OpenID Connect (OIDC) with GitLab. This allows your CI/CD job to assume a specific IAM Role, providing temporary credentials without you ever having to manage static Access Keys.
-  * **Environment-Specific Variables:** For a `staging` pipeline, use a separate IAM user with permissions for the staging environment. For `production`, use a dedicated, more tightly controlled IAM user.
-  * **Set Expiration Dates:** When creating credentials, set a reminder to rotate them regularly (e.g., every 90 days).
-  * **Monitor and Audit:** Use AWS CloudTrail to log and monitor the API calls made by the IAM user, providing an audit trail of your pipeline's activity.
+* **Use IAM Roles for CI/CD:** For a more secure, long-term solution, consider using OpenID Connect (OIDC) with GitLab. This allows your CI/CD job to assume a specific IAM Role, providing temporary credentials without you ever having to manage static Access Keys.
+* **Environment-Specific Variables:** For a `staging` pipeline, use a separate IAM user with permissions for the staging environment. For `production`, use a dedicated, more tightly controlled IAM user.
+* **Set Expiration Dates:** When creating credentials, set a reminder to rotate them regularly (e.g., every 90 days).
+* **Monitor and Audit:** Use AWS CloudTrail to log and monitor the API calls made by the IAM user, providing an audit trail of your pipeline's activity.
 
 -----
+
 ### Uploading a File to S3: Your Application's Cloud Storage Destination 💾
 
 Amazon S3 is a cornerstone of cloud storage, providing a durable, scalable, and secure place to store everything from application artifacts to user-generated content. Uploading files to S3 is a fundamental operation in many DevOps workflows, enabling tasks like static website deployment, data backup, and content delivery.
@@ -1353,10 +1376,10 @@ This guide will walk you through the process of uploading a file to an S3 bucket
 
 ### Why Upload to S3?
 
-  * **Cloud Hosting:** S3 is the go-to service for hosting static web assets (HTML, CSS, JavaScript) and other application content.
-  * **Data Backup & Archiving:** It offers a highly durable and cost-effective solution for backing up critical data.
-  * **Artifact Storage:** CI/CD pipelines can upload build artifacts, test reports, and deployment packages to S3 for long-term storage and easy retrieval.
-  * **Scalability:** S3 scales to store any amount of data, so you don't have to worry about running out of space.
+* **Cloud Hosting:** S3 is the go-to service for hosting static web assets (HTML, CSS, JavaScript) and other application content.
+* **Data Backup & Archiving:** It offers a highly durable and cost-effective solution for backing up critical data.
+* **Artifact Storage:** CI/CD pipelines can upload build artifacts, test reports, and deployment packages to S3 for long-term storage and easy retrieval.
+* **Scalability:** S3 scales to store any amount of data, so you don't have to worry about running out of space.
 
 -----
 
@@ -1364,9 +1387,9 @@ This guide will walk you through the process of uploading a file to an S3 bucket
 
 Before you begin, make sure you have:
 
-  * **An AWS Account:** With an S3 bucket created for your project.
-  * **AWS Credentials:** An IAM user with the necessary permissions (e.g., `s3:PutObject`, `s3:GetObject`) to interact with your S3 bucket.
-  * **AWS CLI Installed & Configured:** The AWS Command Line Interface should be installed and configured on your machine.
+* **An AWS Account:** With an S3 bucket created for your project.
+* **AWS Credentials:** An IAM user with the necessary permissions (e.g., `s3:PutObject`, `s3:GetObject`) to interact with your S3 bucket.
+* **AWS CLI Installed & Configured:** The AWS Command Line Interface should be installed and configured on your machine.
 
 -----
 
@@ -1450,20 +1473,20 @@ deploy_to_s3:
 
 **Key Elements in the CI/CD Script:**
 
-  * **`image: python:3.9-slim`**: A lightweight image that allows us to easily install the AWS CLI using `pip`.
-  * **`pip install awscli`**: Installs the AWS CLI inside the job container.
-  * **`$AWS_ACCESS_KEY_ID` & `$AWS_SECRET_ACCESS_KEY`**: These are not defined in the `.gitlab-ci.yml`. They are securely stored in your project's **GitLab CI/CD variables** and automatically injected into the job's environment.
-  * **`aws s3 sync`**: This command performs the upload. We use `$CI_COMMIT_SHORT_SHA` to create a unique folder for each pipeline run, ensuring we have a complete history of deployments.
+* **`image: python:3.9-slim`**: A lightweight image that allows us to easily install the AWS CLI using `pip`.
+* **`pip install awscli`**: Installs the AWS CLI inside the job container.
+* **`$AWS_ACCESS_KEY_ID` & `$AWS_SECRET_ACCESS_KEY`**: These are not defined in the `.gitlab-ci.yml`. They are securely stored in your project's **GitLab CI/CD variables** and automatically injected into the job's environment.
+* **`aws s3 sync`**: This command performs the upload. We use `$CI_COMMIT_SHORT_SHA` to create a unique folder for each pipeline run, ensuring we have a complete history of deployments.
 
 -----
 
 ### Best Practices for S3 Uploads
 
-  * **Principle of Least Privilege:** Ensure your IAM user for CI/CD has only the `s3:PutObject` and other minimal permissions required for the upload.
-  * **Use `aws s3 sync` for Deployments:** It's more efficient than `aws s3 cp` for syncing entire directories, as it only transfers changed files.
-  * **Automate Everything:** Integrate your S3 uploads into a CI/CD pipeline to ensure every build is consistently deployed.
-  * **Use Versioning:** S3 bucket versioning is a great way to protect against accidental overwrites or deletions.
-  * **Leverage S3 Bucket Policies:** To secure your S3 bucket, use bucket policies to restrict public access and define fine-grained permissions.
+* **Principle of Least Privilege:** Ensure your IAM user for CI/CD has only the `s3:PutObject` and other minimal permissions required for the upload.
+* **Use `aws s3 sync` for Deployments:** It's more efficient than `aws s3 cp` for syncing entire directories, as it only transfers changed files.
+* **Automate Everything:** Integrate your S3 uploads into a CI/CD pipeline to ensure every build is consistently deployed.
+* **Use Versioning:** S3 bucket versioning is a great way to protect against accidental overwrites or deletions.
+* **Leverage S3 Bucket Policies:** To secure your S3 bucket, use bucket policies to restrict public access and define fine-grained permissions.
 
 -----
 
@@ -1475,11 +1498,11 @@ Amazon S3 isn't just for data storage; it's also a powerful and popular platform
 
 ### Why Use S3 for Static Hosting?
 
-  * **Cost-Effective:** You only pay for the storage you use and the data you transfer out. For low-traffic sites, this can be extremely inexpensive.
-  * **Highly Scalable:** S3 is designed for massive scale, so your website can handle sudden spikes in traffic without any performance degradation or manual intervention.
-  * **Reliable & Durable:** Your website's files are stored with S3's renowned 99.999999999% durability and 99.99% availability.
-  * **Secure:** You can secure your website with HTTPS using AWS CloudFront and control access with S3 bucket policies.
-  * **No Server Management:** There are no operating systems, patches, or server instances to manage. You just upload your files, and S3 handles the rest.
+* **Cost-Effective:** You only pay for the storage you use and the data you transfer out. For low-traffic sites, this can be extremely inexpensive.
+* **Highly Scalable:** S3 is designed for massive scale, so your website can handle sudden spikes in traffic without any performance degradation or manual intervention.
+* **Reliable & Durable:** Your website's files are stored with S3's renowned 99.999999999% durability and 99.99% availability.
+* **Secure:** You can secure your website with HTTPS using AWS CloudFront and control access with S3 bucket policies.
+* **No Server Management:** There are no operating systems, patches, or server instances to manage. You just upload your files, and S3 handles the rest.
 
 -----
 
@@ -1487,8 +1510,8 @@ Amazon S3 isn't just for data storage; it's also a powerful and popular platform
 
 Before you begin, ensure you have:
 
-  * **An AWS Account:** A configured AWS account with an S3 bucket created.
-  * **Static Website Content:** Your website's files (e.g., `index.html`, `style.css`, `app.js`).
+* **An AWS Account:** A configured AWS account with an S3 bucket created.
+* **Static Website Content:** Your website's files (e.g., `index.html`, `style.css`, `app.js`).
 
 -----
 
@@ -1496,22 +1519,22 @@ Before you begin, ensure you have:
 
 The process of enabling static website hosting is done via the AWS Management Console.
 
-1.  **Navigate to S3:** Open the AWS Management Console and go to the S3 service.
+1. **Navigate to S3:** Open the AWS Management Console and go to the S3 service.
 
-2.  **Select Your Bucket:** Click on the name of the S3 bucket you want to use for your website.
+2. **Select Your Bucket:** Click on the name of the S3 bucket you want to use for your website.
 
-3.  **Go to Properties:** In the bucket's detail page, click on the **"Properties"** tab.
+3. **Go to Properties:** In the bucket's detail page, click on the **"Properties"** tab.
 
-4.  **Enable Static Website Hosting:** Scroll down to the **"Static website hosting"** section and click **"Edit"**.
+4. **Enable Static Website Hosting:** Scroll down to the **"Static website hosting"** section and click **"Edit"**.
 
       * Select **"Enable"** for static website hosting.
       * **Index document:** Enter the name of your main landing page file (e.g., `index.html`).
       * **Error document (Optional):** Enter the name of your custom error page file (e.g., `error.html`).
       * Click **"Save changes"**.
 
-5.  **Copy the Endpoint URL:** After saving, S3 will provide an **Endpoint URL** for your website (e.g., `http://your-bucket-name.s3-website-us-east-1.amazonaws.com`). This is the public URL for your website.
+5. **Copy the Endpoint URL:** After saving, S3 will provide an **Endpoint URL** for your website (e.g., `http://your-bucket-name.s3-website-us-east-1.amazonaws.com`). This is the public URL for your website.
 
-6.  **Set Public Access (Crucial):** By default, S3 buckets are private. To allow public access to your website's content, you need to configure a **Bucket Policy**.
+6. **Set Public Access (Crucial):** By default, S3 buckets are private. To allow public access to your website's content, you need to configure a **Bucket Policy**.
 
       * Go to the **"Permissions"** tab of your bucket.
       * In the **"Block public access (bucket settings)"** section, click **"Edit"** and uncheck the box for **"Block all public access"**. Confirm the changes.
@@ -1547,7 +1570,7 @@ Once your bucket is configured, you can upload your static website's files using
 aws s3 sync . s3://your-bucket-name/
 ```
 
-  * The `sync` command is efficient as it only uploads new or changed files.
+* The `sync` command is efficient as it only uploads new or changed files.
 
 -----
 
@@ -1590,9 +1613,114 @@ deploy_to_s3:
 
 For a production-grade website, you should:
 
-  * **Use AWS CloudFront:** Integrate an AWS CloudFront distribution  to serve your content from a globally distributed Content Delivery Network (CDN), significantly improving performance and adding HTTPS support.
-  * **Point a Custom Domain:** Configure your domain's DNS to point to the CloudFront distribution, so users can access your site at `www.your-domain.com`.
+* **Use AWS CloudFront:** Integrate an AWS CloudFront distribution  to serve your content from a globally distributed Content Delivery Network (CDN), significantly improving performance and adding HTTPS support.
+* **Point a Custom Domain:** Configure your domain's DNS to point to the CloudFront distribution, so users can access your site at `www.your-domain.com`.
 
 By leveraging S3 static website hosting, you get a powerful, low-maintenance solution for your web content, perfectly integrated into a modern CI/CD workflow.
 
+### Managing AWS Credentials in GitLab - Assignment Solution 🔒
 
+This document provides the complete solution for the assignment on securely managing AWS credentials within a GitLab CI/CD pipeline. The solution demonstrates the best practice of using GitLab's **masked and protected variables** to store sensitive AWS credentials, ensuring they are not exposed in your repository or pipeline logs. This approach is fundamental for maintaining the security of your cloud infrastructure.
+
+-----
+
+### Objective
+
+The objective of this solution is to successfully configure a GitLab CI/CD job that can securely authenticate with Amazon Web Services using IAM credentials and perform a simple action (e.g., listing S3 buckets) without exposing the credentials in the pipeline's configuration or logs.
+
+-----
+
+### 1\. AWS IAM Setup
+
+The first step in the solution is to configure the necessary permissions in your AWS account. This aligns with the **Principle of Least Privilege**.
+
+1. **Create an IAM Policy:** Create a policy that grants only the necessary permissions. For this example, a simple policy allowing the `s3:ListAllMyBuckets` action is sufficient.
+
+    ```json
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": "s3:ListAllMyBuckets",
+                "Resource": "*"
+            }
+        ]
+    }
+    ```
+
+2. **Create an IAM User:** Create a new IAM User (e.g., `gitlab-ci-user`) and attach the policy you created.
+
+3. **Generate Access Keys:** Generate an **Access Key ID** and a **Secret Access Key** for this user. These are the credentials you will use in GitLab.
+
+-----
+
+### 2\. GitLab Variables Setup
+
+Next, you will securely store the AWS credentials in your GitLab project's CI/CD variables.
+
+1. **Navigate to Variables:** In your GitLab project, go to **Settings \> CI/CD**.
+2. **Add Variables:** Under the "Variables" section, add two new variables:
+      * **Key:** `AWS_ACCESS_KEY_ID`
+      * **Value:** Paste the Access Key ID from your IAM User.
+      * **Key:** `AWS_SECRET_ACCESS_KEY`
+      * **Value:** Paste the Secret Access Key from your IAM User.
+3. **Protect and Mask:** For both variables, ensure you check the **`Protect variable`** and **`Mask variable`** options. This is the most crucial step for security.
+
+-----
+
+### 3\. GitLab CI/CD Integration
+
+The final step is to integrate these variables into your `.gitlab-ci.yml` pipeline. The AWS CLI automatically looks for the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables, so your job's script is clean and simple.
+
+**Solution (`.gitlab-ci.yml`):**
+
+```yaml
+# .gitlab-ci.yml
+
+stages:
+  - aws-test
+
+# A job to test AWS CLI access by listing S3 buckets
+list_s3_buckets:
+  stage: aws-test
+  image: "python:3.9-slim" # Using a lightweight image with Python for easy AWS CLI installation
+  
+  # The protected variables will only be available on protected branches (e.g., main)
+  only:
+    - main
+    
+  before_script:
+    - echo "--- Installing AWS CLI ---"
+    # Install the AWS CLI. The --upgrade flag ensures the latest version.
+    - pip install awscli --upgrade > /dev/null
+    
+  script:
+    - echo "--- Attempting to list S3 buckets with secured credentials ---"
+    # The AWS CLI will automatically use the environment variables
+    - aws s3 ls
+    
+  after_script:
+    - echo "AWS CLI command executed successfully. Credentials were not exposed."
+
+```
+
+-----
+
+### 4\. Verification
+
+To verify that the solution works, follow these steps:
+
+1. **Commit and Push:** Commit the `.gitlab-ci.yml` file to your `main` branch.
+2. **Observe the Pipeline:** In GitLab, a pipeline should automatically start.
+3. **Review the Job Log:** View the log for the `list_s3_buckets` job. You should see the output of the `aws s3 ls` command, listing the buckets in your AWS account.
+4. **Confirm Security:** Notice that the values for `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are nowhere to be found in the job log, confirming that the masking worked correctly.
+
+-----
+
+### 5\. Best Practices Summary
+
+* **Principle of Least Privilege:** Always grant the IAM User only the permissions necessary for its task.
+* **Use Protected Variables:** Ensure your sensitive variables are only available to trusted branches.
+* **Use Masked Variables:** This prevents credentials from being visible in pipeline logs.
+* **Auditability:** Each action performed by the IAM user will be logged in AWS CloudTrail, providing an auditable trail of your pipeline's activity.
