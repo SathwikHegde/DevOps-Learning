@@ -1724,3 +1724,100 @@ To verify that the solution works, follow these steps:
 * **Use Protected Variables:** Ensure your sensitive variables are only available to trusted branches.
 * **Use Masked Variables:** This prevents credentials from being visible in pipeline logs.
 * **Auditability:** Each action performed by the IAM user will be logged in AWS CloudTrail, providing an auditable trail of your pipeline's activity.
+
+### Quiz 15: Assignment - Managing AWS Credentials - Step-by-Step Instructions
+
+This quiz is designed to guide you through the process of securely managing AWS credentials within a GitLab CI/CD pipeline. Your goal is to configure a CI/CD job that can securely authenticate with AWS using IAM credentials and perform a simple action without exposing those credentials. This exercise is fundamental for building secure, real-world DevOps workflows.
+
+-----
+
+### Objective
+
+Successfully configure a GitLab CI/CD job to use AWS credentials stored as **masked and protected variables** to list the S3 buckets in your AWS account.
+
+-----
+
+### Step 1: AWS IAM Configuration
+
+You'll start by setting up an IAM user in AWS with the minimum required permissions.
+
+1.  **Create an IAM Policy:** In the AWS Management Console, create a new IAM policy. For this assignment, a policy that grants only the `s3:ListAllMyBuckets` permission is sufficient. This adheres to the **Principle of Least Privilege**.
+
+    ```json
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": "s3:ListAllMyBuckets",
+                "Resource": "*"
+            }
+        ]
+    }
+    ```
+
+2.  **Create an IAM User:** Create a new IAM User (e.g., `gitlab-ci-user`) and attach the policy you just created.
+
+3.  **Generate Access Keys:** Generate an **Access Key ID** and a **Secret Access Key** for this new user. **Save these credentials immediately** as they will not be shown again.
+
+-----
+
+### Step 2: GitLab CI/CD Variables Setup
+
+Now you'll securely store these credentials in your GitLab project.
+
+1.  **Navigate to Variables:** In your GitLab project, go to **Settings \> CI/CD**.
+2.  **Expand Variables:** In the "Variables" section, click **Expand**.
+3.  **Add Your Credentials:** Create two new variables:
+      * **Key:** `AWS_ACCESS_KEY_ID`
+      * **Value:** Paste the Access Key ID from AWS.
+      * **Key:** `AWS_SECRET_ACCESS_KEY`
+      * **Value:** Paste the Secret Access Key from AWS.
+4.  **Check Security Flags:** For both variables, ensure you check the **`Protect variable`** and **`Mask variable`** boxes. This is the most crucial step for keeping your credentials secure.
+
+-----
+
+### Step 3: Pipeline Integration
+
+Finally, you'll create a CI/CD job that uses these variables. The AWS CLI is designed to automatically detect credentials from these specific environment variable names, so your script will be simple.
+
+1.  **Update `.gitlab-ci.yml`:** Create or update your `.gitlab-ci.yml` file with a new job.
+
+2.  **Install AWS CLI:** The job should first install the AWS CLI. A lightweight Python image is a good choice for this.
+
+3.  **Run the Command:** The job's script should then run `aws s3 ls` to test the credentials.
+
+    ```yaml
+    # .gitlab-ci.yml
+
+    stages:
+      - aws-test
+
+    list_s3_buckets:
+      stage: aws-test
+      image: "python:3.9-slim" # Using a lightweight Python image
+      
+      # The protected variables are only available on protected branches (e.g., main)
+      only:
+        - main
+        
+      before_script:
+        - echo "Installing AWS CLI..."
+        - pip install awscli --upgrade > /dev/null
+        
+      script:
+        - echo "Attempting to list S3 buckets with secured credentials..."
+        # The AWS CLI automatically uses the environment variables for credentials
+        - aws s3 ls
+        
+      after_script:
+        - echo "AWS CLI command finished. Credentials were not exposed in the logs."
+    ```
+
+-----
+
+### Verification
+
+1.  **Commit and Push:** Commit and push the updated `.gitlab-ci.yml` to your `main` branch.
+2.  **Observe the Pipeline:** In GitLab, a pipeline should automatically start.
+3.  **Check the Job Log:** View the log for the `list_s3_buckets` job. If successful, you'll see a list of your S3 buckets. Crucially, the sensitive credential values will be hidden from the log output.
