@@ -81,3 +81,152 @@ EC2 is a core part of the AWS ecosystem, and it integrates with nearly every oth
 Mastering EC2 is a key skill for anyone working in the AWS cloud. It provides the foundation for many applications and gives you the flexibility and power to build and scale virtually any computing workload you can imagine.
 
 ---
+### Creating an Nginx Web Server: A High-Performance & Scalable Solution 🚀
+
+Nginx (pronounced "engine-x") is a powerful, high-performance web server that is also widely used as a reverse proxy, load balancer, and HTTP cache. Known for its stability, low resource consumption, and ability to handle high concurrency, Nginx is an essential tool in any DevOps and web development toolkit.
+
+This guide will walk you through two common scenarios for creating and configuring an Nginx web server, with a focus on using Docker for consistency and reproducibility.
+
+-----
+
+### Why Nginx?
+
+  * **High Performance:** Nginx is built to handle thousands of concurrent connections with minimal resource usage, making it faster and more efficient than many traditional web servers.
+  * **Reverse Proxy & Load Balancing:** Its primary strength is acting as a reverse proxy to route traffic to multiple backend application servers, and as a load balancer to distribute that traffic, ensuring high availability.
+  * **Static Content Serving:** It's incredibly fast and efficient at serving static files (HTML, CSS, JavaScript, images), making it ideal for modern web applications.
+  * **Security:** Nginx offers robust security features and can serve as a secure gateway to your backend services.
+
+-----
+
+### The Setup: Two Common Scenarios with Docker 🐳
+
+Using a Docker container to run Nginx is the recommended approach, as it ensures your web server and its configuration are portable and reproducible across all environments.
+
+#### Scenario 1: Hosting a Simple Static Website
+
+This is the most straightforward use case for Nginx. You'll create a Docker image that serves a single `index.html` file.
+
+1.  **Create Your `index.html` File:**
+    Create a simple HTML file named `index.html` in a new directory.
+
+    ```html
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Nginx Static Website</title>
+        <style>body { font-family: sans-serif; text-align: center; margin-top: 50px; }</style>
+    </head>
+    <body>
+        <h1>Hello from Nginx!</h1>
+        <p>This is a simple static website hosted in a Docker container.</p>
+    </body>
+    </html>
+    ```
+
+2.  **Create Your `Dockerfile`:**
+    Create a file named `Dockerfile` in the same directory. This Dockerfile uses a pre-built Nginx image and simply copies your `index.html` file to the correct location.
+
+    ```dockerfile
+    # Use the official Nginx image as the base
+    FROM nginx:alpine
+
+    # Copy your index.html file into the default Nginx public directory
+    COPY index.html /usr/share/nginx/html/
+
+    # Expose port 80 to the host environment
+    EXPOSE 80
+
+    # Nginx starts automatically
+    ```
+
+3.  **Build and Run the Container:**
+    Open a terminal in your project directory and run the following commands.
+
+    ```bash
+    # Build the Docker image and tag it
+    docker build -t static-nginx .
+
+    # Run the container in detached mode (-d) and map port 8080 on your host to port 80 in the container
+    docker run -d -p 8080:80 --name my-static-site static-nginx
+    ```
+
+4.  **Verification:**
+    Open your web browser and navigate to **`http://localhost:8080`**. You should see your "Hello from Nginx\!" page.
+
+-----
+
+#### Scenario 2: Using Nginx as a Reverse Proxy
+
+A more advanced and common use for Nginx is to act as a reverse proxy, forwarding requests to a backend application (e.g., a Node.js API running on port 3000).
+
+1.  **Create a Custom `nginx.conf`:**
+    You'll need to create a custom configuration file to tell Nginx how to forward traffic. Create a new directory and a file named `nginx.conf` inside it.
+
+    ```nginx
+    # nginx.conf
+    events {}
+    http {
+        server {
+            listen 80;
+            server_name localhost;
+
+            location / {
+                # Forward all requests to a backend service running on port 3000
+                proxy_pass http://localhost:3000;
+                
+                # These headers are standard for reverse proxy setups
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+        }
+    }
+    ```
+
+2.  **Create Your `Dockerfile`:**
+    This Dockerfile will use a base Nginx image and override the default configuration with your custom `nginx.conf`.
+
+    ```dockerfile
+    # Use the official Nginx image as the base
+    FROM nginx:alpine
+
+    # Copy your custom nginx.conf to the container, replacing the default
+    COPY nginx.conf /etc/nginx/nginx.conf
+
+    # Expose port 80
+    EXPOSE 80
+    ```
+
+3.  **Build and Run the Container:**
+    Build the image, then run the container. To properly test this, you would also need to have a backend application running on port `3000` on your host machine.
+
+    ```bash
+    # Build the Docker image and tag it
+    docker build -t reverse-proxy-nginx .
+
+    # Run the container, mapping port 8080 on your host to port 80 in the container
+    docker run -d -p 8080:80 --name my-proxy-server reverse-proxy-nginx
+    ```
+
+4.  **Verification:**
+    Send a request to your local server on port `8080`. Nginx will receive it and then forward it to your backend application running on port `3000`.
+
+    ```bash
+    curl http://localhost:8080
+    ```
+
+      * **Note:** For a full, containerized solution, you would typically use **Docker Compose** to run both your Nginx proxy and your backend application in a single network, which simplifies the configuration.
+
+-----
+
+### What's Next?
+
+Once your Nginx container is configured and running, the next step is to integrate its build and deployment into your CI/CD pipeline. This would involve:
+
+  * Creating a `Dockerfile` for your web application.
+  * Creating a `Dockerfile` for your Nginx reverse proxy.
+  * Using GitLab CI/CD to build both images, push them to the container registry, and then deploy them as a multi-container application.
+
+-----
