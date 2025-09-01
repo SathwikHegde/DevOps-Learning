@@ -748,7 +748,102 @@ This command is convenient, but it's a significant security risk. A malicious ac
 By properly verifying SSH host keys, you ensure that your CI/CD pipeline not only automates your workflows but also does so in a secure and trustworthy manner.
 
 
+### Running Commands over SSH: Automating Remote Operations from GitLab CI/CD 🚀
 
+SSH (Secure Shell) is the cornerstone of remote automation. Once you have a secure SSH connection configured between your GitLab runner and a target server, you can use the `ssh` command to execute any command or script on that remote machine. This capability is fundamental for CI/CD pipelines that need to deploy applications, run database migrations, restart services, or perform server maintenance.
+
+This guide explains how to run commands over SSH from your `.gitlab-ci.yml` pipeline.
+
+-----
+
+### The Core `ssh` Command for Automation
+
+The basic syntax for running a command over SSH is:
+
+```bash
+ssh <user>@<host> "<command>"
+```
+
+  * `<user>`: The user on the remote server (e.g., `root`, `ubuntu`, `deploy_user`).
+  * `<host>`: The hostname or IP address of the remote server.
+  * `<command>`: The command you want to execute on the remote server. Enclose it in double quotes (`"`) to ensure it's treated as a single command.
+
+For automation, it's a best practice to use the `-T` flag, which disables pseudo-terminal allocation. This prevents the command from hanging and is ideal for non-interactive commands and scripts.
+
+```bash
+ssh -T <user>@<host> "<command>"
+```
+
+-----
+
+### Step-by-Step Guide for GitLab CI/CD
+
+To run a command over SSH from your GitLab pipeline, you must have the SSH connection prerequisites configured.
+
+1.  **Configure SSH Connection:** Follow the instructions in the "Configuring the SSH connection" README to set up your SSH key pair and store the private key securely in GitLab's CI/CD variables.
+
+2.  **Add a Deployment Job:** Create a job in your `.gitlab-ci.yml` file that uses the SSH setup. The `before_script` is the ideal place for the SSH agent setup.
+
+<!-- end list -->
+
+```yaml
+# .gitlab-ci.yml
+
+stages:
+  - deploy
+
+deploy_to_server:
+  stage: deploy
+  image: alpine/git:latest # An image with SSH and git clients
+  
+  before_script:
+    - echo "--- Setting up SSH connection ---"
+    # Start SSH agent and add the private key from GitLab's variable
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | ssh-add - > /dev/null
+    
+    # Add the remote server's host key to known_hosts to avoid verification prompts
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan -H your-remote-server.com >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+
+  script:
+    - echo "--- Running remote commands ---"
+    # Example 1: Check the status of a service on the remote server
+    - ssh -T deploy_user@your-remote-server.com "sudo systemctl status nginx"
+
+    # Example 2: Run a remote deployment script
+    # The bash command is needed to ensure a complex remote script is run correctly
+    - ssh -T deploy_user@your-remote-server.com "bash /path/to/remote/deploy_app.sh"
+
+    # Example 3: Run multiple commands on the remote server
+    - |
+      ssh -T deploy_user@your-remote-server.com "
+      # A multi-line script to run on the remote machine
+      cd /var/www/my-app/
+      git pull
+      npm install
+      npm run build
+      sudo systemctl restart my-app.service
+      "
+  
+  only:
+    - main # Restrict to a protected branch to use the protected SSH variable
+```
+
+-----
+
+### Best Practices for Running Remote Commands
+
+  * **Use Non-Interactive Commands:** Avoid commands that require user input, as they will cause your pipeline to hang.
+  * **Use a Dedicated User:** Create a dedicated user on the remote server (e.g., `deploy_user`) with limited, specific permissions for your pipeline to use. This adheres to the **Principle of Least Privilege**.
+  * **Use SSH Key-Based Authentication:** Always use SSH keys instead of passwords. This is more secure and is the standard for automation.
+  * **Wrap Complex Commands in Scripts:** For a series of remote commands, it is cleaner and more reliable to wrap them in a single shell script on the remote server and call that script from your GitLab job.
+  * **Add a `~/.bashrc` Alias:** On the remote server, you can add an alias or a function to the `~/.bashrc` file for complex or frequently used commands.
+  * **Check Exit Codes:** After an SSH command, check the exit code to ensure the remote command succeeded. If the remote command fails, the SSH command will return a non-zero exit code, which will fail your GitLab job.
+
+-----
 
 
 
