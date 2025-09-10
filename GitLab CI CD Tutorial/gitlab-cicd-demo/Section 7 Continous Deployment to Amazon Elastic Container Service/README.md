@@ -306,3 +306,86 @@ Creating a cluster is just the first step. The next logical steps in the ECS dep
 The cluster you've just created will be the home for all these components.
 
 ---
+### Creating a Task Definition in ECS: The Blueprint for Your Application 🗺️
+
+After creating an ECS cluster, the next logical step in the deployment workflow is to create a **Task Definition**. A Task Definition is the **blueprint for your application**. It's a text file (in JSON format) that defines everything about the containers that make up your application, and is a critical document for ensuring reproducibility and consistency.
+
+You can think of a Task Definition as the equivalent of a `docker-compose.yml` file or a Kubernetes manifest for ECS.
+
+***
+
+### Why a Task Definition is Your Application's Blueprint
+
+* **Separation of Concerns:** A Task Definition separates your application's configuration (what containers to run) from your infrastructure's configuration (where and how many containers to run, which is handled by the Service).
+* **Version Control:** Task Definitions are versioned. When you update a Task Definition, a new revision is created. This allows you to easily roll back to previous, known-good versions if a deployment fails.
+* **Reproducibility:** A Task Definition guarantees that every instance of your application is launched with the exact same configuration, from the Docker image to the environment variables.
+
+***
+
+### Key Parameters of a Task Definition ⚙️
+
+When you create a Task Definition, you define several key parameters for your application:
+
+* **Launch Type:** Fargate or EC2. This defines the infrastructure on which your tasks will run.
+* **Task Role:** An IAM role that grants permissions to the containers in your task. This allows your application to securely interact with other AWS services (e.g., S3, DynamoDB) without hardcoding credentials.
+* **Network Mode:** The network mode for your containers. For Fargate, `awsvpc` is the required network mode.
+* **Task CPU and Memory:** The total amount of CPU and memory that all containers in the task will require.
+* **Container Definitions:** This is the most detailed part of the Task Definition, where you specify:
+    * **Container Name:** A unique name for your container (e.g., `my-app`).
+    * **Image:** The Docker image to use (e.g., `my-gitlab-registry/my-app:1.0.0`).
+    * **Port Mappings:** The network ports the container exposes.
+    * **Environment Variables:** Any environment variables your application needs.
+
+***
+
+### Creating a Task Definition via the AWS Console
+
+For new users, creating a Task Definition through the AWS Management Console is the most straightforward method.
+
+1.  **Navigate to the ECS Service:**
+    Log in to your AWS account and search for the **ECS (Elastic Container Service)** service.
+2.  **Go to Task Definitions:**
+    In the left-hand navigation pane, click on **Task Definitions**.
+3.  **Click "Create new Task Definition":**
+    In the top-right corner, click the **`Create new Task Definition`** button.
+4.  **Choose Fargate and a Name:**
+    * **Launch type compatibility:** Select **`Fargate`**.
+    * **Task Definition family:** Give your Task Definition a unique name (e.g., `learn-gitlab-app-task-definition`).
+5.  **Configure the Task and Container:**
+    * **Task role (Optional):** If your application needs to access other AWS services, create and select an IAM role here.
+    * **Network Mode:** Select `awsvpc` (required for Fargate).
+    * **Task size:** Define the **Task memory** and **Task CPU** requirements for your application.
+    * **Add Container:** Click **`Add container`** and provide the following:
+        * **Container name:** e.g., `learn-gitlab-app-container`.
+        * **Image:** The URL of your Docker image in a registry (e.g., `my-gitlab-registry/my-app:latest`).
+        * **Port mappings:** The port your container listens on (e.g., `3000`).
+6.  **Click "Create"**:
+    After reviewing the settings, click **`Create`** to register your Task Definition.
+
+---
+
+### Verifying Your Task Definition ✅
+
+After clicking `Create`, AWS will register the Task Definition for you.
+
+* Return to the **Task Definitions** page.
+* You should see your new Task Definition listed with a status of **`Active`** and a revision number (e.g., `learn-gitlab-app-task-definition:1`).
+
+Once your Task Definition is `Active`, it is ready to be used by an ECS Service.
+
+---
+
+### The Automated Approach (CLI / IaC)
+
+For a production environment, you would typically automate the creation of Task Definitions using code.
+
+* **AWS CLI:** You can write a JSON file that defines your Task Definition and then use the `aws ecs register-task-definition` command to register it from your terminal or a CI/CD script.
+* **Infrastructure as Code (IaC):** Tools like AWS CloudFormation or Terraform can define your Task Definition, cluster, and all other resources in a repeatable and version-controlled manner.
+
+---
+
+### What's Next: Your Path to Deployment
+
+Creating a Task Definition is the second step. The next and final step to running your application is to create an ECS Service. The Service will use the Task Definition you've just created to manage and run your application's containers.
+
+---
