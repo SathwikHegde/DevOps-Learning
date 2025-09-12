@@ -480,3 +480,138 @@ Now that you understand the full ECS workflow, the next step is to automate this
 4.  Triggering the ECS Service to deploy the new Task Definition.
 
 ***
+### Updating the Task Definition using AWS CLI: The Key to Deploying New Versions ⚙️
+
+In a containerized workflow on Amazon ECS, the **Task Definition** is the blueprint for your application. When you release a new version of your application, you don't modify the existing Task Definition; instead, you create a new revision. Updating the Task Definition using the AWS CLI is a crucial step in a CI/CD pipeline, as it tells ECS about your new Docker image and prepares your application for a new deployment.
+
+This guide will walk you through how to use the `aws ecs register-task-definition` command to update your application's blueprint, a fundamental task for any automated deployment pipeline.
+
+-----
+
+### Why Update the Task Definition?
+
+  * **Reproducibility:** By registering a new revision, you create a new, immutable blueprint for your application, ensuring that every deployment of that version is identical.
+  * **Rollbacks:** The versioning system of Task Definitions makes it easy to roll back to a previous, known-good version if a new deployment introduces a bug.
+  * **Separation of Concerns:** It cleanly separates the process of building a new Docker image from the process of deploying that image to your cluster.
+  * **CI/CD Automation:** It's the essential command in your pipeline that connects your new Docker image to your ECS Service.
+
+-----
+
+### The Core AWS CLI Command
+
+The primary command for this task is `aws ecs register-task-definition`. This command registers a new revision of a Task Definition, allowing you to change key parameters like the Docker image.
+
+```bash
+aws ecs register-task-definition --cli-input-json file://<your-task-definition>.json
+```
+
+The `--cli-input-json` flag tells the CLI to read the entire Task Definition's configuration from a local JSON file.
+
+-----
+
+### Step-by-Step Guide for AWS CLI
+
+To successfully update a Task Definition, you need a Task Definition JSON file. The easiest way to get this file is to retrieve the existing Task Definition from your ECS cluster.
+
+#### 1\. Retrieve the Existing Task Definition JSON
+
+Use the `aws ecs describe-task-definition` command to get the JSON for your current Task Definition. This command will output the JSON to your terminal.
+
+```bash
+aws ecs describe-task-definition --task-definition learn-gitlab-app-task-definition --query 'taskDefinition' > task-definition.json
+```
+
+  * **`--task-definition`**: Specifies the name of your Task Definition.
+  * **`--query`**: This is a JMESPath filter that extracts only the `taskDefinition` object, which is what we need to register a new revision.
+  * **`>`**: This redirects the output to a new file named `task-definition.json`.
+
+#### 2\. Update the JSON File with the New Image Tag
+
+Open the `task-definition.json` file you just created. Find the container definition within the JSON and update the `image` field with the new Docker image tag.
+
+```json
+{
+    "family": "learn-gitlab-app-task-definition",
+    "networkMode": "awsvpc",
+    "containerDefinitions": [
+        {
+            "name": "learn-gitlab-app-container",
+            "image": "my-gitlab-registry/my-app:1.0.0-abcdef1", # <-- Update this line
+            "portMappings": [
+                {
+                    "containerPort": 3000,
+                    "hostPort": 3000,
+                    "protocol": "tcp"
+                }
+            ],
+            "cpu": 0,
+            "memory": 256,
+            "essential": true,
+            "environment": [
+              # ... your environment variables
+            ]
+        }
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "256",
+    "memory": "512"
+    # ... other fields
+}
+```
+
+-----
+
+### Automating with GitLab CI/CD 🚀
+
+The real power of this process is when you automate it in your CI/CD pipeline. Your deployment job will:
+
+1.  Retrieve the existing Task Definition.
+2.  Modify the JSON file with the new image tag (which you can get from a previous job).
+3.  Register the new Task Definition using `aws ecs register-task-definition`.
+
+<!-- end list -->
+
+```yaml
+# .gitlab-ci.yml
+
+stages:
+  - build
+  - deploy
+
+deploy_to_ecs:
+  stage: deploy
+  image: python:3.9-slim # Use a Python image for easy installation of jq and awscli
+  
+  before_script:
+    - echo "--- Setting up AWS CLI and jq ---"
+    - pip install awscli > /dev/null
+    - apt-get update && apt-get install -y jq > /dev/null
+    # Ensure AWS credentials are set as protected CI/CD variables
+    - |
+      if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+        echo "ERROR: AWS credentials are not set. Exiting."
+        exit 1
+      fi
+
+  script:
+    - echo "--- Retrieving and updating the Task Definition ---"
+    # 1. Get the latest Task Definition JSON
+    - aws ecs describe-task-definition --task-definition learn-gitlab-app-task-definition --query 'taskDefinition' > task-definition.json
+    
+    # 2. Update the 'image' tag with the new SHA. Use 'jq' for this.
+    - NEW_IMAGE_TAG="$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+    - cat task-definition.json | jq '.containerDefinitions[0].image = "'"$NEW_IMAGE_TAG"'"' > updated-task-definition.json
+    
+    # 3. Register the new Task Definition
+    - NEW_TASK_DEFINITION=$(aws ecs register-task-definition --cli-input-json file://updated-task-definition.json --query 'taskDefinition.taskDefinitionArn' --output text)
+    - echo "Registered new Task Definition: $NEW_TASK_DEFINITION"
+
+    # Now, your pipeline can use $NEW_TASK_DEFINITION to update the ECS Service
+    # (This is a conceptual next step, covered in a separate README)
+```
+
+By automating this process, your CI/CD pipeline for the `learn-gitlab-app` can reliably and consistently update your application's Task Definition, a critical step toward a full-fledged deployment.
+
+-----
