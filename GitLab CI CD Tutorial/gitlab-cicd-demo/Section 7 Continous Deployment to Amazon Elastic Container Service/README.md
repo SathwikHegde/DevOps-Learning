@@ -615,3 +615,120 @@ deploy_to_ecs:
 By automating this process, your CI/CD pipeline for the `learn-gitlab-app` can reliably and consistently update your application's Task Definition, a critical step toward a full-fledged deployment.
 
 -----
+### Updating the Service using AWS CLI: The Final Step in Your Deployment 🚀
+
+The **ECS Service** is the component that manages your application's lifecycle, ensuring that a desired number of tasks are always running. When you have a new Task Definition, updating the Service is the final step in your CI/CD pipeline. It tells ECS to perform a rolling update, gracefully replacing old tasks with new ones based on the updated blueprint.
+
+This guide will walk you through how to use the `aws ecs update-service` command to deploy a new version of your application to an ECS cluster, completing your automated container deployment workflow.
+
+-----
+
+### Why Update the Service?
+
+  * **Triggering Deployment:** The `update-service` command is what actually initiates the deployment process. It signals to ECS that a new version of the application is ready.
+  * **Rolling Updates:** ECS handles the deployment with zero downtime. It launches new tasks before terminating old ones, ensuring your application remains available throughout the process.
+  * **Consistency:** It ensures that all tasks managed by the Service are running with the latest and most consistent configuration defined in the Task Definition.
+  * **CI/CD Automation:** This is the last and most critical command in your pipeline's deployment job, connecting your code changes to your live application.
+
+-----
+
+### The Core AWS CLI Command
+
+The primary command for this task is `aws ecs update-service`. The most common way to use it is to specify the new Task Definition.
+
+```bash
+aws ecs update-service --cluster <cluster-name> --service <service-name> --task-definition <task-definition-arn>
+```
+
+  * **`--cluster`**: The name of the ECS cluster where your service is running.
+  * **`--service`**: The name of the ECS service you want to update.
+  * **`--task-definition`**: The ARN of the new Task Definition revision.
+
+-----
+
+### Step-by-Step Guide for AWS CLI
+
+To successfully update a Service, you need the ARN (Amazon Resource Name) of the new Task Definition. This is typically obtained after you register the Task Definition in a previous step.
+
+#### 1\. Obtain the New Task Definition ARN
+
+After you run `aws ecs register-task-definition`, the command returns the ARN of the new revision. This ARN is what you pass to the `update-service` command.
+
+```bash
+# Example command from the previous README
+NEW_TASK_DEFINITION=$(aws ecs register-task-definition --cli-input-json file://updated-task-definition.json --query 'taskDefinition.taskDefinitionArn' --output text)
+echo "Registered new Task Definition: $NEW_TASK_DEFINITION"
+```
+
+  * The `NEW_TASK_DEFINITION` variable will now hold the ARN of the new Task Definition revision.
+
+#### 2\. Update the ECS Service
+
+Now, you use that ARN to update the service, which will trigger a new deployment.
+
+```bash
+aws ecs update-service --cluster learn-gitlab-app-cluster --service learn-gitlab-app-service --task-definition $NEW_TASK_DEFINITION
+```
+
+  * This command will initiate a deployment, and your ECS Service will begin replacing the old tasks with new ones based on the Task Definition identified by the `$NEW_TASK_DEFINITION` variable.
+
+-----
+
+### Automating with GitLab CI/CD 🚀
+
+The real power of this process is when you automate it in your CI/CD pipeline. Your deployment job will:
+
+1.  Obtain the new Task Definition ARN (e.g., from a previous job).
+2.  Update the ECS Service.
+
+<!-- end list -->
+
+```yaml
+# .gitlab-ci.yml
+
+stages:
+  - build
+  - deploy
+
+# A previous job would build and push the Docker image
+# A previous job would update the task definition and store the new ARN as a dotenv variable
+
+deploy_to_ecs:
+  stage: deploy
+  image: python:3.9-slim # Use a Python image for easy installation of awscli
+  
+  # This job depends on the job that registered the new Task Definition
+  needs:
+    - job: register_task_definition_job
+      artifacts: true
+
+  before_script:
+    - echo "--- Setting up AWS CLI ---"
+    - pip install awscli > /dev/null
+    # Ensure AWS credentials are set as protected CI/CD variables
+    - |
+      if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+        echo "ERROR: AWS credentials are not set. Exiting."
+        exit 1
+      fi
+  
+  script:
+    - echo "--- Triggering deployment for ECS Service ---"
+    # The `NEW_TASK_DEFINITION_ARN` variable is provided by the previous job via dotenv
+    - aws ecs update-service --cluster learn-gitlab-app-cluster --service learn-gitlab-app-service --task-definition "$NEW_TASK_DEFINITION_ARN"
+    
+    - echo "Deployment triggered for service learn-gitlab-app-service with Task Definition $NEW_TASK_DEFINITION_ARN"
+```
+
+  * **`needs:`**: The `deploy_to_ecs` job explicitly depends on the job that registered the Task Definition, ensuring it gets the correct Task Definition ARN from its artifacts.
+  * **`$NEW_TASK_DEFINITION_ARN`**: This variable would be passed from the previous job using a `dotenv` artifact report.
+
+-----
+
+### Best Practices for Updating Services
+
+  * **Automate the Update:** Always automate the `update-service` command in your CI/CD pipeline.
+  * **Wait for the Deployment:** For production systems, use the `aws ecs wait services-stable` command after the update to ensure the deployment is successful before continuing the pipeline.
+  * **Use Health Checks:** Ensure your Task Definition's container has a health check configured. This allows ECS to detect unhealthy tasks and prevent them from receiving traffic.
+  * **Leverage `CodeDeploy` (Advanced):** For more advanced deployment strategies (e.g., Canary, Blue/Green), integrate your ECS Service with AWS CodeDeploy.
+  * **Monitor the Deployment:** After the update, monitor your service's events and logs in AWS CloudWatch to ensure the new tasks are running correctly.
