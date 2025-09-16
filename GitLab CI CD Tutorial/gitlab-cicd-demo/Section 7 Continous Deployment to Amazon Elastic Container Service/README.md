@@ -932,3 +932,4 @@ These four steps form the core of a robust and automated CI/CD pipeline. Your pi
 By automating this workflow, you can ensure that every code change is consistently built, tested, and deployed to your ECS cluster with minimal human intervention.
 
 -----
+Beautify readme
