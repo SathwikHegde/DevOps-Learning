@@ -113,3 +113,64 @@ In the pipeline view, retried jobs are clearly marked with a retry count, so you
 ### What's Next?
 
 While the `retry` keyword is a quick and effective solution for dealing with flaky jobs, it should not be a long-term fix for poorly written code or unstable tests. A best practice is to use `retry` as a temporary solution while you investigate and fix the root cause of the intermittent failures. It should be seen as a safety net, not a replacement for reliable code.
+
+### Allowing Failures: The `allow_failure` Keyword ⚙️
+
+In a GitLab CI/CD pipeline, not all job failures are critical. Some jobs, like code quality reports or performance checks, are intended to provide information and warnings rather than act as a strict gate for the pipeline. The `allow_failure` keyword provides a way to mark a job as non-critical. If a job with `allow_failure: true` fails, the pipeline will continue to run, but the job will be marked with a yellow warning icon.
+
+-----
+
+### Why Use `allow_failure`?
+
+  * **Non-Critical Feedback:** It allows you to integrate jobs that provide valuable feedback (like a security scan or linter report) without blocking the entire pipeline.
+  * **Pipeline Efficiency:** Your pipeline can continue running, and you can review the failures of non-critical jobs later.
+  * **Flexibility:** It gives you granular control over which jobs are strict gates and which are for informational purposes.
+
+-----
+
+### Step-by-Step Guide
+
+#### 1\. Add the `allow_failure` Keyword to a Job
+
+You add the `allow_failure` keyword directly to the job you want to allow to fail.
+
+```yaml
+# .gitlab-ci.yml
+
+stages:
+  - build
+  - test
+  - review
+
+build_job:
+  stage: build
+  script:
+    - echo "Building app..."
+
+e2e_tests:
+  stage: test
+  script:
+    - echo "Running E2E tests..."
+    - exit 1 # This job will fail
+
+# This job is for code quality reports and is allowed to fail
+code_quality_check:
+  stage: test
+  script:
+    - echo "Running code quality check..."
+    - exit 1 # This job will fail
+  allow_failure: true
+
+deploy_review_app:
+  stage: review
+  script:
+    - echo "Deploying review app..."
+```
+
+In this example, even though `code_quality_check` fails, the `e2e_tests` and `deploy_review_app` jobs will still run.
+
+-----
+
+### What's Next?
+
+The `allow_failure` keyword is often used in conjunction with other features like `rules` and `when`. For example, you might have a job that only runs for a merge request and is allowed to fail, but the same job is a strict gate when it runs on the main branch. This provides a balance between giving fast feedback and ensuring quality in your main branch.
