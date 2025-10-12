@@ -174,3 +174,120 @@ In this example, even though `code_quality_check` fails, the `e2e_tests` and `de
 ### What's Next?
 
 The `allow_failure` keyword is often used in conjunction with other features like `rules` and `when`. For example, you might have a job that only runs for a merge request and is allowed to fail, but the same job is a strict gate when it runs on the main branch. This provides a balance between giving fast feedback and ensuring quality in your main branch.
+
+### YAML Anchors and Aliases: Streamlining Your `.gitlab-ci.yml` ⚓
+
+As your GitLab CI/CD pipeline grows, your `.gitlab-ci.yml` file can become long and repetitive, particularly when many jobs share identical configurations (like the `before_script`, `image`, or `rules`). **YAML Anchors (`&`) and Aliases (`*`)** provide a powerful mechanism to reuse blocks of configuration, making your pipeline definition significantly cleaner, more concise, and easier to maintain.
+
+Using anchors and aliases is a core best practice for building mature and scalable CI/CD pipelines.
+
+-----
+
+### 1\. The Core Concept: DRY (Don't Repeat Yourself)
+
+YAML anchors and aliases allow you to define a configuration block once (the anchor) and reference it many times (the alias). This prevents repetition, meaning you only have to update a configuration in one place, and all jobs referencing it are instantly updated.
+
+| Symbol | Name | Purpose | Example |
+| :---: | :---: | :--- | :---: |
+| **`&`** | **Anchor** | **Defines** the reusable block of configuration. | `&test_setup` |
+| **`*`** | **Alias** | **References** the anchored block, copying its content. | `*test_setup` |
+| **`<<:`** | **Merge Key** | **Merges** the referenced block into the current mapping. | `<<: *test_setup` |
+
+-----
+
+### 2\. Step-by-Step Implementation
+
+The most common and effective way to use anchors and aliases in GitLab CI/CD is to define reusable blocks at the **top-level** of your `.gitlab-ci.yml` file, often prefixed with a dot (`.`) so they are treated as abstract configurations and are not executed as jobs themselves.
+
+#### Example: Reusing the `before_script` and `image`
+
+Let's simplify a pipeline where both `unit_tests` and `integration_tests` use the same setup.
+
+```yaml
+# .gitlab-ci.yml
+
+stages:
+  - test
+  - deploy
+
+# 1. Define the reusable block (the ANCHOR)
+.default_test_setup: &common_test_config
+  image: node:18-alpine
+  before_script:
+    - npm install --silent
+    - echo "Dependencies installed."
+  tags:
+    - docker
+
+# -------------------------------------------------------------
+
+unit_tests:
+  stage: test
+  # 2. Reference and merge the anchor (the ALIAS and MERGE KEY)
+  <<: *common_test_config
+  script:
+    - npm run test:unit
+  # This job now automatically includes the image and before_script from the anchor.
+
+integration_tests:
+  stage: test
+  <<: *common_test_config
+  script:
+    - npm run test:integration
+  # This job also includes the common setup.
+```
+
+-----
+
+### 3\. Advanced Use: Overriding and Extending
+
+The beauty of the YAML merge key (`<<:`) is that it intelligently merges configuration, allowing you to easily override specific keys from the anchored block.
+
+#### Example: Overriding a Key
+
+In the example below, the `deploy_production` job uses the shared `docker_setup` but overrides the `rules` to require a manual action.
+
+```yaml
+# .gitlab-ci.yml
+
+# Define the common Docker setup
+.default_docker_build_config: &docker_build_config
+  image: docker:latest
+  services:
+    - docker:dind
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success # Default: Automated deployment
+
+# -------------------------------------------------------------
+
+deploy_staging:
+  stage: deploy
+  <<: *docker_build_config # Merge all common Docker setup
+  script:
+    - echo "Deploying automatically to staging..."
+
+deploy_production:
+  stage: deploy
+  <<: *docker_build_config # Merge the common Docker setup
+  rules: # OVERRIDE the rules defined in the anchor
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual # Change from automated to manual
+  script:
+    - echo "Deployment requires manual approval..."
+```
+
+**Key Result:** The `deploy_production` job inherits the `image` and `services` but uses its local, customized `rules` block. The merge key (`<<:`) always prioritizes keys defined *locally* over those referenced in the anchor.
+
+-----
+
+### 4\. Best Practices for Anchors and Aliases
+
+  * **Use Abstract Names:** Prefix reusable blocks with a dot (`.`) (e.g., `.common_settings`) to prevent GitLab from recognizing them as runnable jobs.
+  * **Define Anchors at the Top:** Place all your anchor definitions at the beginning of your file for easy readability and maintenance.
+  * **Keep Anchors Focused:** Create anchors that are small and focused on one specific area (e.g., `.docker_service_setup`, `.test_dependencies`). This makes them easier to combine and manage.
+  * **Combine Anchors:** You can combine multiple anchors within a single job to build complex configurations from smaller, reusable parts. This significantly improves pipeline maintainability and reduces file size.
+
+By implementing YAML anchors and aliases, you transform a sprawling configuration file into a clean, modular, and professional CI/CD pipeline definition.
+
+-----
