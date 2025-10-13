@@ -291,3 +291,101 @@ deploy_production:
 By implementing YAML anchors and aliases, you transform a sprawling configuration file into a clean, modular, and professional CI/CD pipeline definition.
 
 -----
+
+### Job Templates with YAML Anchors and Aliases: A Practical Example ⚓
+
+YAML Anchors (`&`) and Aliases (`*`) are powerful tools for creating reusable configuration blocks, effectively turning them into job templates. This is a core practice for achieving **DRY (Don't Repeat Yourself)** principles in your `.gitlab-ci.yml` file, making your pipeline highly maintainable and readable.
+
+This guide provides a practical example of creating and consuming a base test template to define multiple testing jobs quickly.
+
+-----
+
+### The Goal: Creating Reusable Job Templates
+
+We want three testing jobs (`unit_tests`, `lint_check`, `e2e_tests`) that share the following common configuration:
+
+1.  Use the same **base Docker image**.
+2.  Run the same **dependency installation** steps.
+3.  Are restricted to only run on the `main` branch or a **Merge Request pipeline**.
+
+By using a YAML anchor, we define this common configuration only once.
+
+-----
+
+### Step 1: Define the Base Template (The Anchor)
+
+Create an abstract configuration block at the top of your `.gitlab-ci.yml`. We name it with a leading dot (`.`) so GitLab does not recognize it as a runnable job.
+
+```yaml
+# .gitlab-ci.yml
+
+stages:
+  - test
+  - security
+  - deploy
+
+# 1. THE ANCHOR: Define the reusable template block
+.base_test_template: &test_definition
+  # Configuration shared by all jobs:
+  image: node:20-alpine
+  before_script:
+    - npm install --silent
+    - echo "Dependencies ready."
+  # Rules shared by all jobs: restrict to main branch or MR pipelines
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: on_success
+```
+
+  * **`&test_definition`**: This is the **Anchor** name. It marks this entire block as reusable.
+
+-----
+
+### Step 2: Consume the Template (The Alias and Merge Key)
+
+Now, we define our specific jobs and use the **Merge Key** (`<<:`) to pull in the configuration from the anchor. We only need to define the specific `stage` and the unique `script` for each job.
+
+```yaml
+# .gitlab-ci.yml (Continued)
+
+# --- Consuming the Template ---
+
+unit_tests:
+  stage: test
+  <<: *test_definition # ALIAS: Merge all config from the 'test_definition' anchor
+  script:
+    - npm run test:unit # Unique command for this job
+  # This job inherits image, before_script, and rules.
+
+lint_check:
+  stage: test
+  <<: *test_definition # ALIAS: Merge all config from the 'test_definition' anchor
+  script:
+    - npm run lint # Unique command for this job
+  allow_failure: true # Local OVERRIDE: This job is non-critical
+
+e2e_tests:
+  stage: test
+  <<: *test_definition # ALIAS: Merge all config from the 'test_definition' anchor
+  script:
+    - npm run start &
+    - sleep 10 # Wait for app to start
+    - npx playwright test # Unique command for this job
+  timeout: 15 minutes # Local ADDITION: Add a specific timeout for E2E tests
+
+# -------------------------------------------------------------
+```
+
+-----
+
+### Practical Advantages Demonstrated
+
+1.  **Readability:** The definition of each job is now very concise, focusing only on its unique purpose (`script`).
+2.  **Maintenance:** If you decide to change the base image from `node:20-alpine` to `node:22-alpine`, you only need to update the image tag in **one place** (`.base_test_template`). All three jobs automatically inherit the change.
+3.  **Flexibility (Overriding):** The `lint_check` job demonstrates how to easily **override** or **add** local settings. It inherits all the common setup but locally sets `allow_failure: true`, showing how templates provide a strong baseline while still permitting customization.
+
+This approach ensures that your GitLab CI configuration is modular, easy to scale, and professional.
+
+-----
