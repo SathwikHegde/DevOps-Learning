@@ -390,101 +390,93 @@ This approach ensures that your GitLab CI configuration is modular, easy to scal
 
 -----
 
-### Job Templates with YAML Anchors and Aliases: A Practical Example ⚓
+### Reusing Configuration with `extends`: Building Modular Pipelines with Inheritance 🧱
 
-YAML Anchors (`&`) and Aliases (`*`) are powerful tools for creating reusable configuration blocks, effectively turning them into job templates. This is a core practice for achieving **DRY (Don't Repeat Yourself)** principles in your `.gitlab-ci.yml` file, making your pipeline highly maintainable and readable.
+The **`extends`** keyword is a modern and explicit way in GitLab CI/CD to reuse configuration, offering a cleaner alternative or complement to YAML Anchors and Aliases. It enables you to create a **base job template** and then have other jobs **inherit** its configuration, simplifying your `.gitlab-ci.yml` file through clear inheritance.
 
-This guide provides a practical example of creating and consuming a base test template to define multiple testing jobs quickly.
-
------
-
-### The Goal: Creating Reusable Job Templates
-
-We want three testing jobs (`unit_tests`, `lint_check`, `e2e_tests`) that share the following common configuration:
-
-1.  Use the same **base Docker image**.
-2.  Run the same **dependency installation** steps.
-3.  Are restricted to only run on the `main` branch or a **Merge Request pipeline**.
-
-By using a YAML anchor, we define this common configuration only once.
+This approach is crucial for building scalable, highly maintainable, and modular pipelines.
 
 -----
 
-### Step 1: Define the Base Template (The Anchor)
+### How `extends` Works: The Inheritance Model
 
-Create an abstract configuration block at the top of your `.gitlab-ci.yml`. We name it with a leading dot (`.`) so GitLab does not recognize it as a runnable job.
+The `extends` keyword allows a job to inherit the entire configuration of one or more specified abstract jobs (templates). It operates on a principle of inheritance:
+
+1.  **Child Job:** The job using `extends` (the child).
+2.  **Parent Job (Template):** The abstract job being extended (the parent).
+3.  **Merge Logic:** The child job's local configuration overrides the configuration inherited from the parent. If a key is present in both, the child's value wins.
+
+This is often considered cleaner than YAML anchors/aliases because it's more explicit about which template a job is built from.
+
+-----
+
+### Step-by-Step Implementation
+
+The best practice is to define abstract configuration jobs using a leading dot (`.`), so they are not executed as part of the pipeline.
+
+#### Example: Defining and Extending a Base Test Job
+
+Let's refactor the previous testing template using `extends`.
 
 ```yaml
 # .gitlab-ci.yml
 
 stages:
   - test
-  - security
   - deploy
 
-# 1. THE ANCHOR: Define the reusable template block
-.base_test_template: &test_definition
-  # Configuration shared by all jobs:
+# 1. Define the Abstract Parent Job (The Template)
+.base_test_definition:
   image: node:20-alpine
   before_script:
     - npm install --silent
     - echo "Dependencies ready."
-  # Rules shared by all jobs: restrict to main branch or MR pipelines
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
       when: on_success
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: on_success
-```
 
-  * **`&test_definition`**: This is the **Anchor** name. It marks this entire block as reusable.
+# -------------------------------------------------------------
 
------
-
-### Step 2: Consume the Template (The Alias and Merge Key)
-
-Now, we define our specific jobs and use the **Merge Key** (`<<:`) to pull in the configuration from the anchor. We only need to define the specific `stage` and the unique `script` for each job.
-
-```yaml
-# .gitlab-ci.yml (Continued)
-
-# --- Consuming the Template ---
+# 2. The Child Job: Inherit and Customize
 
 unit_tests:
   stage: test
-  <<: *test_definition # ALIAS: Merge all config from the 'test_definition' anchor
+  extends: .base_test_definition # Inherits image, before_script, and rules
   script:
     - npm run test:unit # Unique command for this job
-  # This job inherits image, before_script, and rules.
 
 lint_check:
   stage: test
-  <<: *test_definition # ALIAS: Merge all config from the 'test_definition' anchor
+  extends: .base_test_definition # Inherits base configuration
   script:
-    - npm run lint # Unique command for this job
-  allow_failure: true # Local OVERRIDE: This job is non-critical
+    - npm run lint
+  allow_failure: true # Local Override/Addition: Adds a non-critical setting
 
 e2e_tests:
   stage: test
-  <<: *test_definition # ALIAS: Merge all config from the 'test_definition' anchor
+  extends: .base_test_definition
   script:
     - npm run start &
-    - sleep 10 # Wait for app to start
-    - npx playwright test # Unique command for this job
-  timeout: 15 minutes # Local ADDITION: Add a specific timeout for E2E tests
-
-# -------------------------------------------------------------
+    - sleep 10
+    - npx playwright test
+  timeout: 15 minutes # Local Addition: Adds a specific timeout
 ```
 
 -----
 
-### Practical Advantages Demonstrated
+### Advantages of `extends` over YAML Anchors
 
-1.  **Readability:** The definition of each job is now very concise, focusing only on its unique purpose (`script`).
-2.  **Maintenance:** If you decide to change the base image from `node:20-alpine` to `node:22-alpine`, you only need to update the image tag in **one place** (`.base_test_template`). All three jobs automatically inherit the change.
-3.  **Flexibility (Overriding):** The `lint_check` job demonstrates how to easily **override** or **add** local settings. It inherits all the common setup but locally sets `allow_failure: true`, showing how templates provide a strong baseline while still permitting customization.
+While anchors and `extends` achieve similar results, `extends` offers key benefits:
 
-This approach ensures that your GitLab CI configuration is modular, easy to scale, and professional.
+| Feature | `extends` Keyword | YAML Anchors/Aliases |
+| :--- | :--- | :--- |
+| **Clarity** | Explicitly defines inheritance, showing the template name right in the job. | Requires referencing the less intuitive `&` and `*` symbols. |
+| **Simplicity** | Cleaner syntax; no need for the `<<:` merge key. | Requires the merge key (`<<:`) to combine configurations, which can be verbose. |
+| **Multiple Inheritance** | **Easily supports multiple inheritance** (e.g., `extends: [.template_a, .template_b]`), merging configurations from several sources. | Merging multiple anchors is possible but becomes visually complex and cluttered. |
+| **Override Priority** | Follows clear inheritance rules: child's keys always override parent's keys. | Follows standard YAML merge rules, which can sometimes lead to less intuitive behavior for beginners. |
+
+For building highly structured and complex pipelines, **`extends` is often the preferred method** because it promotes better readability and organization through explicit inheritance.
 
 -----
-
