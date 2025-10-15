@@ -479,4 +479,124 @@ While anchors and `extends` achieve similar results, `extends` offers key benefi
 
 For building highly structured and complex pipelines, **`extends` is often the preferred method** because it promotes better readability and organization through explicit inheritance.
 
+----
+
+### Importing YAML Configuration from Other Files: The `include` Keyword 🧩
+
+As your application and its CI/CD pipeline grow, placing all job definitions, templates, and complex configurations into a single `.gitlab-ci.yml` file becomes unwieldy. The **`include`** keyword is a fundamental feature of advanced GitLab CI/CD, allowing you to **split your configuration into multiple, smaller YAML files** and import them into your main pipeline definition.
+
+This practice is essential for maintainability, modularity, and achieving a professional, scalable pipeline structure.
+
+-----
+
+### Why Use the `include` Keyword?
+
+  * **Modularity and Readability:** Breaks down a massive, sprawling configuration file into smaller, logically grouped components (e.g., separate files for testing, deployment, and security). This makes the pipeline easier to read, navigate, and debug.
+  * **Reusability Across Projects:** Allows you to define generic templates (like a standardized security scan job or a common build script) in a separate file and reuse that file across multiple projects, fostering consistency throughout your organization.
+  * **Maintainability (DRY Principle):** Simplifies updates. For example, if you update the definition of your static website deployment in one template file, every project that includes that file is updated automatically.
+  * **Dynamic Pipelines:** Enables advanced, conditional pipeline generation (covered in later sections) where the pipeline structure itself changes based on what files were modified or which branch is being used.
+
+-----
+
+### Methods for Including Configuration
+
+The `include` keyword supports several ways to pull configuration into your main `.gitlab-ci.yml` file.
+
+#### 1\. Local Files (Preferred for Project Structure)
+
+Includes configuration files located in the same GitLab project.
+
+```yaml
+# .gitlab-ci.yml
+
+include:
+  # Imports the file located at '.gitlab-ci/build.yml' in the current repository
+  - local: '.gitlab-ci/build.yml'
+  
+  # Imports the file located at '.gitlab-ci/test-templates.yml'
+  - local: '.gitlab-ci/test-templates.yml'
+  
+stages:
+  - build
+  - test
+  # The imported files will define jobs that fit into these stages
+```
+
+  * **Use Case:** Structuring a single project (e.g., breaking down a monolith's pipeline).
+
+#### 2\. Files from Other Projects (Reusability)
+
+Includes configuration files from another private or public GitLab repository.
+
+```yaml
+# .gitlab-ci.yml
+
+include:
+  # Imports the file named 'security-scan.yml' from the 'gitlab-templates/ci-templates' project
+  - project: 'shared-templates/ci-templates'
+    file: 'security-scan.yml'
+    ref: 'v1.0.0' # Best practice: lock to a specific tag or SHA for stability
+```
+
+  * **Use Case:** Sharing standardized CI templates across multiple teams or departments.
+
+#### 3\. Remote Files (External Sources)
+
+Includes configuration files hosted at a public URL (e.g., raw file links).
+
+```yaml
+# .gitlab-ci.yml
+
+include:
+  # Imports a file via HTTPS (useful for public or globally hosted configurations)
+  - remote: 'https://gitlab.com/awesome-ci/ci-utils/-/raw/main/deployment.yml'
+```
+
+  * **Use Case:** Importing public, general-purpose configurations. (Use `project` or `local` where possible for better security and version control.)
+
+#### 4\. GitLab Templates (Pre-defined)
+
+Includes official GitLab templates (e.g., Docker, Pages, or specific language templates).
+
+```yaml
+# .gitlab-ci.yml
+
+include:
+  # Imports the built-in template for Docker build
+  - template: Auto-DevOps.gitlab-ci.yml
+```
+
+  * **Use Case:** Leveraging GitLab's extensive library of officially maintained CI/CD templates.
+
+-----
+
+### Practical Example: Modularizing the Pipeline
+
+Here's how a pipeline for the `learn-gitlab-app` might be split using `include`:
+
+| File | Purpose | Key Jobs/Templates Defined |
+| :--- | :--- | :--- |
+| **`.gitlab-ci.yml`** (Main) | Defines the stages and imports all necessary files. | `stages: [build, test, deploy]` |
+| **`.gitlab-ci/build.yml`** | Defines the image build process. | `build_and_push_docker_image` |
+| **`.gitlab-ci/test.yml`** | Defines all testing jobs. | `unit_tests`, `e2e_tests` |
+| **`.gitlab-ci/templates.yml`** | Defines reusable templates. | `.base_test_config` (using YAML anchors/extends) |
+
+**The result in the main file:**
+
+```yaml
+# .gitlab-ci.yml (The main file)
+
+include:
+  - local: '.gitlab-ci/templates.yml' # First, load reusable templates
+  - local: '.gitlab-ci/build.yml'     # Second, load build jobs
+  - local: '.gitlab-ci/test.yml'      # Third, load test jobs
+
+stages:
+  - build
+  - test
+  - deploy
+```
+
+This structure keeps the main file clean, acting primarily as a table of contents and orchestrator, while the complexity is managed in its corresponding, modular files.
+
 -----
