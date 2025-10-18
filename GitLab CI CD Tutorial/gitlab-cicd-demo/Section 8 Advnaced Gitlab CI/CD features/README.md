@@ -807,4 +807,89 @@ By adopting CI/CD Components, your organization moves toward a mature model of *
 
 -----
 
+### Writing Multi-line Scripts: Simplifying Complex Logic in GitLab CI/CD 📝
 
+When your pipeline jobs need to execute a sequence of commands, managing them on separate lines under the `script` keyword can quickly become cluttered. **YAML's multi-line scalar syntax** provides a clean, readable, and efficient way to define complex, multi-step shell scripts directly within your `.gitlab-ci.yml`.
+
+This is a fundamental skill for keeping your pipeline logic organized and easy to debug.
+
+-----
+
+### The Problem: Single-Line Commands
+
+If you define complex logic using a list of single `script` commands, you lose the benefits of standard shell scripting, like shared variables and conditional logic:
+
+```yaml
+# Inefficient and hard to read
+script:
+  - TEMP_TAG="staging-${CI_COMMIT_SHORT_SHA}" # TEMP_TAG is lost after this line
+  - docker build -t $TEMP_TAG .
+  - docker push $TEMP_TAG
+  - if [ "$CI_COMMIT_BRANCH" == "main" ]; then deploy_prod; fi # Logic becomes verbose
+```
+
+In the example above, each `-` entry runs in a separate shell instance, meaning any variables set (like `TEMP_TAG`) are lost immediately.
+
+-----
+
+### The Solution: YAML Block Scalars
+
+YAML offers two primary block scalars for multi-line content: the **literal block scalar (`|`)** and the **folded block scalar (`>`)**. For shell scripting in GitLab CI, the **literal block scalar (`|`)** is the preferred and most reliable method.
+
+#### 1\. The Literal Block Scalar (`|`)
+
+The vertical bar (`|`) tells the parser to preserve **all newlines and internal indentation** exactly as they appear.
+
+  * **Result:** The entire block of text is passed to a **single shell instance** (e.g., `bash`), allowing you to use standard shell features like `if/then/else` and retain variable scope across the entire block.
+  * **Best Practice:** This is the standard way to write complex scripts in GitLab CI.
+
+<!-- end list -->
+
+```yaml
+deploy_job:
+  stage: deploy
+  image: docker:latest
+  script:
+    # Use the literal block scalar (|) to wrap the entire script
+    - |
+      # 1. Start the script with 'set -e' for safety
+      set -e
+      
+      echo "--- Starting Complex Deployment Script ---"
+      
+      # 2. Variable scope is now maintained across lines
+      APP_VERSION="v1.0.${CI_PIPELINE_IID}"
+      DOCKER_IMAGE="$CI_REGISTRY_IMAGE:$APP_VERSION"
+
+      # 3. Use standard shell logic (if/then/else)
+      if [ "$CI_COMMIT_BRANCH" == "main" ]; then
+        echo "Building production image: $DOCKER_IMAGE"
+        docker build -t "$DOCKER_IMAGE" .
+        docker push "$DOCKER_IMAGE"
+        deploy_to_prod "$DOCKER_IMAGE"
+      else
+        echo "Skipping production deployment on branch $CI_COMMIT_BRANCH."
+      fi
+      
+      echo "--- Script Finished Successfully ---"
+```
+
+#### 2\. The Folded Block Scalar (`>`)
+
+The greater-than sign (`>`) tells the parser to fold (replace) newlines with spaces, treating the entire block as a single, long line of text.
+
+  * **Result:** While it saves horizontal space, it's **rarely used for shell scripting** because it can easily break commands that rely on specific formatting or line breaks.
+
+-----
+
+### Best Practices for Multi-line Scripts
+
+  * **Use `|` Consistently:** Adopt the literal block scalar (`|`) as your standard for any job requiring more than two commands.
+  * **Start with `set -e`:** Always begin your multi-line script with `set -e`. This is a vital best practice in shell scripting that forces the script to **exit immediately if any command fails** (returns a non-zero exit code). This prevents the pipeline from continuing with a potentially corrupted or incomplete state.
+  * **Maintain Indentation:** The indentation level of the script content relative to the `|` marker is preserved. Use consistent two-space or four-space indentation for readability.
+  * **Use Comments:** Treat the multi-line block as a proper script and include comments (`#`) to explain complex logic or steps.
+  * **Abstract Complex Logic:** If the script grows beyond 20-30 lines, consider moving the logic out of `.gitlab-ci.yml` and into a separate shell script file (e.g., `deploy.sh`). You can then simply call this script from your CI job: `script: - ./deploy.sh`.
+
+By leveraging the multi-line literal block scalar (`|`), you gain the full power of your shell environment, making your CI/CD scripts robust, clear, and easy to maintain.
+
+-----
