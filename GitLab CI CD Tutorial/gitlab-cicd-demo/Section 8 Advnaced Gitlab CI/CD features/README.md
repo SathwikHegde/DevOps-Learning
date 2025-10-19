@@ -893,3 +893,112 @@ The greater-than sign (`>`) tells the parser to fold (replace) newlines with spa
 By leveraging the multi-line literal block scalar (`|`), you gain the full power of your shell environment, making your CI/CD scripts robust, clear, and easy to maintain.
 
 -----
+### Starting a Server / Background Process within a Job ⚙️
+
+In a CI/CD pipeline, many jobs require a server or service to be running in the background before the main task can execute. This is most common for **End-to-End (E2E) testing** and **integration testing**, where the test runner needs a live application instance to connect to. Running a background process correctly and ensuring the job waits for it to be ready are critical steps for building reliable and non-flaky pipelines.
+
+The core challenge is managing the server process's execution and lifecycle within the single-shell environment of the CI job.
+
+-----
+
+### The Core Technique: Running in the Background (`&`)
+
+To run a server in the background, you append an ampersand (`&`) to the execution command. This immediately returns control to the terminal (the script), allowing subsequent commands to run.
+
+1.  **Start the Process:** Append `&` to the startup command.
+2.  **Capture the PID:** Immediately capture the **Process ID (PID)** using the special shell variable `$!`. This is essential for controlling or stopping the process later.
+
+<!-- end list -->
+
+```bash
+# Example 1: Start a Node.js server
+npm run start &
+SERVER_PID=$!
+
+# Example 2: Start an API on a specific port
+python3 api.py --port 8080 &
+API_PID=$!
+```
+
+-----
+
+### The Critical Step: Waiting for Readiness (Health Check)
+
+The biggest mistake is immediately running the test after starting the server. The test runner will likely fail because the server hasn't finished initializing. A simple `sleep 10` is brittle and inefficient. The robust solution is to use a **health check loop**.
+
+This loop repeatedly checks a known health endpoint until it receives a successful response, guaranteeing the service is ready.
+
+#### Robust Health Check Loop
+
+This pattern is highly recommended:
+
+```bash
+# Example: Waiting for the app to be available on port 3000
+APP_URL="http://localhost:3000/health"
+MAX_ATTEMPTS=30
+WAIT_SECONDS=1
+
+echo "Waiting for app to become healthy at $APP_URL..."
+
+# Loop to retry the health check
+for i in $(seq 1 $MAX_ATTEMPTS); do
+  # Use curl with the --fail flag: exits with 0 only on success (HTTP 2xx or 3xx)
+  if curl --fail -s $APP_URL; then
+    echo "Application is ready on attempt $i."
+    break
+  fi
+  echo "Application not yet ready, waiting $WAIT_SECONDS second(s)... ($i/$MAX_ATTEMPTS)"
+  sleep $WAIT_SECONDS
+done
+
+# Final check: If the loop finished without the 'break', the app failed to start.
+curl --fail -s $APP_URL || { echo "ERROR: Application failed to start within the timeout!"; exit 1; }
+```
+
+This ensures the script pauses for the minimum necessary time and provides a clear failure mechanism if the server never comes up.
+
+-----
+
+### Comprehensive CI/CD Script Example
+
+Combining all these elements creates a reliable E2E test job. The entire logic is wrapped in a multi-line script (`|`) for clean variable scoping.
+
+```yaml
+e2e_tests:
+  stage: e2e
+  image: mcr.microsoft.com/playwright/node:lts-slim # Image with test tools
+  script:
+    - | # Use the literal block scalar to manage the entire script lifecycle
+      set -e
+      
+      echo "--- 1. Starting Application Server ---"
+      npm run start:server &
+      SERVER_PID=$! # Capture the PID for cleanup
+
+      echo "--- 2. Waiting for Health Check ---"
+      # Robust health check loop goes here (as defined above)
+      APP_URL="http://localhost:3000/health"
+      for i in $(seq 1 30); do
+        if curl --fail -s $APP_URL; then break; fi
+        sleep 1
+      done
+      curl --fail -s $APP_URL || { echo "ERROR: App failed to start!"; kill $SERVER_PID; exit 1; }
+
+      echo "--- 3. Running E2E Tests ---"
+      npx playwright test
+
+      echo "--- 4. Cleaning Up Background Process ---"
+      kill $SERVER_PID || true # Gracefully kill the background process
+      wait $SERVER_PID || true # Ensure the shell waits for cleanup before exiting
+```
+
+-----
+
+### Best Practices for Background Processes
+
+  * **Always Capture PID:** Use `PID=$!` immediately after running the process to control its lifecycle.
+  * **Always Clean Up:** Use `kill $PID` and `wait $PID` in the cleanup phase to prevent resource leaks and ensure a clean job exit. The `|| true` prevents the job from failing if the process unexpectedly exited already.
+  * **Use `set -e`:** Start your multi-line script with `set -e` so the job fails immediately if any command, including the health check, returns an error.
+  * **Access Inside the Container:** Background processes should be accessed via `localhost` and the internal container port, not the external host's port.
+
+-----
