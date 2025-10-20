@@ -1002,3 +1002,100 @@ e2e_tests:
   * **Access Inside the Container:** Background processes should be accessed via `localhost` and the internal container port, not the external host's port.
 
 -----
+### GitLab Pages: Hosting Static Websites Directly from Your Repository 🌐
+
+**GitLab Pages** is a powerful feature that allows you to publish static websites directly from any project within GitLab. It's a free service provided by GitLab that automatically builds and deploys your static content (HTML, CSS, JavaScript, static site generator output) using your existing GitLab CI/CD pipeline.
+
+GitLab Pages is the perfect solution for hosting documentation, personal blogs, open-source project sites, or any simple static application.
+
+-----
+
+### How GitLab Pages Works
+
+The process of deploying a website via GitLab Pages is entirely integrated with and driven by your `.gitlab-ci.yml` file.
+
+1.  **Job Definition:** You define a specific job named `pages` in your CI/CD pipeline.
+2.  **Artifact Generation:** This job is responsible for compiling your static site (if applicable) and moving all resulting files into a directory named **`public/`**.
+3.  **Artifact Upload:** The `pages` job archives the contents of the `public/` directory and uploads it as an artifact.
+4.  **Automatic Serving:** Once the job succeeds, GitLab automatically detects the `pages` artifact, extracts the files from the `public/` directory, and serves them publicly via a dedicated URL.
+
+-----
+
+### Key Requirements for a Pages Job
+
+For GitLab to successfully recognize and deploy your static site, the `pages` job must meet three mandatory criteria:
+
+1.  **Job Name:** The job *must* be named **`pages`**.
+2.  **Artifact Path:** The job *must* specify the artifact path as the directory **`public/`**.
+3.  **Artifact Expiry:** The artifact must not have an `expire_in` time set, or it should be long enough to keep the site active.
+
+#### Example: Deploying a Simple HTML Site
+
+If your project already contains your static files, the job is minimal:
+
+```yaml
+pages:
+  stage: deploy
+  image: alpine:latest
+  script:
+    # 1. Ensure the directory is named 'public'
+    - mkdir .public
+    - cp -r * .public/ # Copy all project files into the new directory
+    - mv .public public # Rename the directory to 'public'
+    - echo "Pages deployment structure created."
+  artifacts:
+    paths:
+      - public # 2. The artifact path MUST be 'public'
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Only deploy from the default branch (e.g., 'main')
+```
+
+#### Example: Deploying a Site Built with a Static Site Generator (SSG)
+
+If your site requires compilation (e.g., using Jekyll, Hugo, or Gatsby), the job must first run the build process and then move the output to the `public/` folder.
+
+```yaml
+# .gitlab-ci.yml
+
+pages:
+  stage: deploy
+  image: node:20-alpine # Use an image with Node.js to run the build script
+  
+  script:
+    - echo "Installing dependencies and building site..."
+    - npm install
+    # Run the static site generator's build command (e.g., 'npm run build' generates files into a 'dist' folder)
+    - npm run build 
+    
+    # The critical step: move the compiled output (e.g., 'dist') into the 'public/' directory
+    - mv dist public 
+    - echo "Site deployed to public/ directory."
+    
+  artifacts:
+    paths:
+      - public # Artifact path must be 'public'
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Only deploy when merging to the main branch
+```
+
+-----
+
+### Accessing Your GitLab Pages Site
+
+Once the `pages` job successfully completes, your website will be accessible at a URL based on your project's path:
+
+  * **For Project Websites:** `http://<username>.gitlab.io/<project-path>`
+  * **For User/Group Websites:** `http://<username>.gitlab.io` (Requires the project to be named exactly `<username>.gitlab.io` or `<groupname>.gitlab.io`).
+
+You can find the direct link to your deployed site under your project's **`Deploy > Pages`** settings.
+
+-----
+
+### Best Practices for GitLab Pages
+
+  * **Use Specific Rules:** Always use `rules` to restrict the `pages` job to only run on the main branch (`$CI_DEFAULT_BRANCH`) or on tags. Deploying on every branch push is inefficient.
+  * **Optimize Build Time:** Use lightweight Docker images (like Alpine variants) and leverage CI/CD caching for dependencies to speed up the build process.
+  * **Use `.nojekyll`:** If you are *not* using Jekyll and GitLab mistakenly tries to process your content as Jekyll, place an empty file named `.nojekyll` in the root of your `public/` directory.
+  * **Custom Domains & HTTPS:** GitLab Pages supports custom domains and automatic generation of SSL/TLS certificates (HTTPS), which should be configured for any production-ready site.
+
+-----
