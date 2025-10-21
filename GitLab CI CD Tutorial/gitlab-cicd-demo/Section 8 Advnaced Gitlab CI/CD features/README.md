@@ -1099,3 +1099,87 @@ You can find the direct link to your deployed site under your project's **`Deplo
   * **Custom Domains & HTTPS:** GitLab Pages supports custom domains and automatic generation of SSL/TLS certificates (HTTPS), which should be configured for any production-ready site.
 
 -----
+### Choosing the GitLab Runner using Tags: Directing Jobs to the Right Executor 🎯
+
+As your organization scales and your CI/CD needs become more complex, you'll likely have different types of **GitLab Runners** specialized for various tasks. For example, you might have one Runner for fast unit tests, another with Docker-in-Docker (DIND) enabled for building images, and yet another configured with specific cloud credentials for deployment.
+
+The **`tags`** keyword in your `.gitlab-ci.yml` is the mechanism used to direct a job to a specific, capable Runner, ensuring that the right job is executed on the right machine.
+
+-----
+
+### Why Use Runner Tags?
+
+  * **Capability Matching:** Ensures a job that requires specific software (like a GPU, Android SDK, or AWS CLI) is only run on a Runner that has those tools installed.
+  * **Performance Optimization:** Directs fast jobs (like linters) to lightweight, high-availability Runners and long-running jobs (like E2E tests) to dedicated, powerful machines.
+  * **Security and Isolation:** Restricts sensitive deployment jobs to hardened Runners that are properly secured and isolated.
+  * **Cost Control:** Directs jobs to specific Runner fleets to manage costs (e.g., directing high-cost Windows jobs to specific Runners).
+
+-----
+
+### How Runner Tagging Works
+
+1.  **Runner Registration:** When a GitLab Runner is registered with GitLab, the administrator assigns one or more descriptive tags to it (e.g., `dind`, `gcp-deploy`, `node-18-e2e`, `small-cpu`).
+2.  **Job Specification:** In your `.gitlab-ci.yml`, you specify which tags the job requires using the `tags` keyword.
+3.  **Job Assignment:** GitLab's orchestrator only assigns the job to a Runner that possesses **all** the tags listed in the job's configuration.
+
+-----
+
+### Practical Example in `.gitlab-ci.yml`
+
+This example demonstrates how to use tags to assign different tasks to specialized Runners:
+
+```yaml
+# .gitlab-ci.yml
+
+stages:
+  - test
+  - build
+  - deploy
+
+# 1. Fast, simple job runs on any generic, available Runner
+unit_tests:
+  stage: test
+  image: node:18-alpine
+  script:
+    - npm run test:unit
+  tags:
+    - shared # Directs job to a common, high-availability Runner pool
+
+# 2. Building a Docker image requires the Docker-in-Docker capability
+build_docker_image:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind # Requires dind support
+  script:
+    - docker build -t my-app:latest .
+  tags:
+    - docker-build # Directs job to a Runner configured with DIND
+
+# 3. Deployment requires both the 'aws-cli' tool and the 'protected' tag for security
+deploy_production:
+  stage: deploy
+  image: python:3.9-slim
+  script:
+    - pip install awscli
+    - aws s3 sync ./build s3://prod-bucket
+  tags:
+    - aws-cli      # Must have the AWS CLI installed
+    - restricted   # Must be a secure Runner for protected environments
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual # Runs only on main branch, and only when triggered manually
+```
+
+-----
+
+### Key Considerations for Using Tags
+
+  * **All Tags Must Match:** If a job requires multiple tags (e.g., `aws-cli` and `restricted`), a Runner must have *both* tags to be eligible to execute the job.
+  * **No Tags = Any Runner:** If you omit the `tags` keyword from a job, GitLab will assign it to the first available Runner that has **no tags defined** or to any Runner that is configured to accept untagged jobs.
+  * **Tag Naming Convention:** Establish clear, descriptive tag names across your organization (e.g., `os:windows`, `cloud:gcp`, `tool:selenium`).
+  * **Runner Availability:** Ensure that you have enough specialized Runners available for the jobs assigned to them. If a job's specified tags match no active Runners, the job will remain in a pending state indefinitely.
+
+Using tags effectively is a hallmark of a mature CI/CD system, transforming an unpredictable job queue into a reliable, capability-driven task assignment system.
+
+-----
