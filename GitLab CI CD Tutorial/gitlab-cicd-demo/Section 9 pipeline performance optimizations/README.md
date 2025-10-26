@@ -392,3 +392,94 @@ This is a powerful combination: you force the dependency (`needs`), but explicit
 
 By leveraging the `needs` keyword, you move your pipeline from a rigid, waterfall-style sequence to a dynamic, high-performance graph that optimizes every minute of execution time.
 -----
+### Using the `needs` Keyword with Artifacts: Targeted Data Flow in DAG Pipelines 🎯
+
+The `needs` keyword fundamentally alters pipeline execution by allowing jobs to run out of stage order, maximizing parallelization (Directed Acyclic Graph or DAG). When using `needs`, you often need to access artifacts from the specific jobs you're depending on. GitLab makes this connection explicit, allowing you to control both the **control flow** and the **data flow**.
+
+The key is that **artifacts from jobs listed in `needs` are downloaded by default**, but you can—and should—explicitly control this transfer using the `artifacts: false` option within the `needs` array to prevent unnecessary data transfer.
+
+-----
+
+### Why Control Artifacts with `needs`?
+
+  * **Speed Optimization:** Downloading unnecessary artifacts, especially large ones, slows down job start-up times significantly. Explicitly disabling unwanted transfers ensures the fastest possible execution.
+  * **Targeted Data Flow:** The `needs` keyword defines *which* job's output is required for the next step, clarifying the data flow in a complex pipeline.
+  * **Separation of Concerns:** You can wait for a dependency to complete for control flow (e.g., waiting for `security_scan` to finish) but choose *not* to download any of its data.
+
+-----
+
+### Implementation: Controlling Data Flow in `needs`
+
+The `needs` keyword accepts an array of job definitions. You can specify the job name and use the optional `artifacts` sub-keyword to control the data transfer.
+
+| Configuration | Effect on Control Flow | Effect on Data Flow (Artifacts) | When to Use |
+| :---: | :---: | :---: | :---: |
+| **`needs: [job_A]`** | Waits for `job_A` to finish. | Downloads `job_A`'s artifacts. | Standard use case when you need both the result *and* the file output. |
+| **`needs: [{ job: job_B, artifacts: false }]`** | Waits for `job_B` to finish. | **Does NOT** download `job_B`'s artifacts. | When you only need to ensure a job *succeeded* before proceeding (e.g., security check, deployment gate). |
+
+#### Example: Optimizing a Deployment Workflow
+
+Consider a scenario where the `deploy_prod` job needs the Docker image tag (passed via a small `.env` artifact) from `build_image`, but must also wait for `security_scan` to finish, even though it doesn't need the security report files.
+
+```yaml
+# .gitlab-ci.yml
+
+stages:
+  - build
+  - security
+  - deploy
+
+build_image:
+  stage: build
+  script:
+    - echo "DOCKER_IMAGE_TAG=my-app:1.0.1" > build.env
+  artifacts:
+    reports:
+      dotenv: build.env # Small, critical data
+    paths:
+      - large_logs/ # Large, non-critical data
+
+security_scan:
+  stage: security
+  script:
+    - echo "Running security checks..."
+    # This job produces a large report file, security_report.json
+  artifacts:
+    paths: [security_report.json]
+
+deploy_prod:
+  stage: deploy
+  image: alpine/git:latest
+  
+  needs:
+    # 1. Wait for build_image AND download its artifacts (needed for the DOCKER_IMAGE_TAG variable and small dotenv)
+    - job: build_image
+      artifacts: true 
+    
+    # 2. Wait for security_scan, but DO NOT download its large artifacts (only need confirmation of success)
+    - job: security_scan
+      artifacts: false 
+      
+  script:
+    - echo "Deployment using image $DOCKER_IMAGE_TAG" # Variable DOCKER_IMAGE_TAG is available
+    - ls -a # Will only show the small build.env artifact, NOT large_logs/ or security_report.json
+    - deploy_script "$DOCKER_IMAGE_TAG"
+```
+
+In this optimized example:
+
+  * **Control Flow:** `deploy_prod` waits for both `build_image` and `security_scan`.
+  * **Data Flow:** It efficiently downloads only the small, necessary `dotenv` artifact from `build_image`, completely ignoring the large, unnecessary logs and security reports, resulting in a much faster job start time.
+
+-----
+
+### Best Practices for Artifact Control
+
+  * **Be Explicit:** Never rely on the default artifact download behavior when using `needs`. Always explicitly set `artifacts: true` or `artifacts: false` for every job in your `needs` array.
+  * **Small Data via `dotenv`:** For passing small variables (like image tags, URLs, or IDs), use `artifacts:reports:dotenv` in the generating job. This is much faster than passing an entire folder.
+  * **Combine with `dependencies`:** Even when using `needs`, you can still use the `dependencies` keyword to disable all other non-required artifacts from jobs outside of your `needs` array.
+  * **Verify I/O:** After setting up `needs` and `artifacts`, check your job logs to ensure only the expected files are being downloaded by the GitLab Runner.
+
+By utilizing the `needs` keyword with precise artifact control, you maximize pipeline performance, ensuring your CI/CD workflow is both fast and reliable.
+
+-----
