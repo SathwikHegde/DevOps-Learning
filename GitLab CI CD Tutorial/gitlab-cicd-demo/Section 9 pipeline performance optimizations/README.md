@@ -1078,6 +1078,99 @@ unit_tests:
 Disabling the cache is an important troubleshooting and control mechanism, but in high-performance pipelines, the goal should be to maximize cache usage with dynamic, reliable keys.
 
 -----
+### Cache Policy: Controlling Cache Upload and Download Behavior ⚙️
 
+The **`cache:policy`** keyword is a crucial tool for optimizing CI/CD speed by giving you precise control over when the GitLab Runner should **download (pull)** or **upload (push)** a cache archive. This prevents redundant network operations and ensures that valid caches are not accidentally overwritten.
+
+Understanding the three cache policies is essential for maximizing efficiency in your CI/CD pipeline.
+
+-----
+
+### The Three Cache Policies
+
+The `policy` keyword is defined at the job level and dictates the runner's behavior regarding the cache archive associated with the job's `key`.
+
+| Policy | Behavior | When to Use |
+| :---: | :--- | :--- |
+| **`pull-push` (Default)** | **Pull** the cache at the start; **Push** a new version at the end. | **The cache creation job.** Use this for the job that runs your dependency installation command (e.g., `npm install`), as it will create the dependency folder and needs to save the new cache. |
+| **`pull`** | Only **Pull** the cache at the start. **Does not push** a new version at the end. | **The cache consumption jobs.** Use this for all subsequent jobs that only *read* the dependencies (e.g., test or build jobs). This prevents them from overwriting the main, valid cache. |
+| **`push`** | Only **Push** a new cache at the end. **Does not pull** an existing one at the start. | **Rarely used.** Primarily for explicitly forcing a cache rebuild without relying on an existing cache (e.g., a dedicated cleanup job). |
+
+-----
+
+### Practical Example: Optimizing a Build and Test Cycle
+
+This example demonstrates how to use policies to ensure dependencies are installed only once (`pull-push`) and are safely reused by subsequent jobs (`pull`).
+
+```yaml
+# .gitlab-ci.yml
+
+stages:
+  - install
+  - test
+  - deploy
+
+# Define a shared cache key based on the dependency lock file
+variables:
+  NODE_CACHE_KEY: &cache_key
+    key:
+      files:
+        - package-lock.json 
+      prefix: node-deps-v1
+
+# --- STAGE 1: INSTALL (The Cache Creator) ---
+install_dependencies:
+  stage: install
+  image: node:20-alpine
+  script:
+    - echo "Running npm install..."
+    - npm install
+  cache:
+    <<: *cache_key # Use the defined key
+    paths:
+      - node_modules/
+    policy: pull-push # <-- PULL-PUSH: Try to restore; if not, save the new dependencies
+  
+# --- STAGE 2: TEST (A Cache Consumer) ---
+run_tests:
+  stage: test
+  image: node:20-alpine
+  needs: ["install_dependencies"]
+  script:
+    - echo "Dependencies restored (fast). Running tests..."
+    - npm test
+  cache:
+    <<: *cache_key # Use the defined key
+    paths:
+      - node_modules/
+    policy: pull # <-- PULL: Only restore the cache, DO NOT save a new version
+
+# --- STAGE 3: DEPLOY (Another Cache Consumer) ---
+build_artifacts:
+  stage: deploy
+  image: node:20-alpine
+  needs: ["run_tests"]
+  script:
+    - echo "Dependencies restored (fast). Building artifacts..."
+    - npm run build
+  cache:
+    <<: *cache_key # Use the defined key
+    paths:
+      - node_modules/
+    policy: pull # <-- PULL: Only restore the cache.
+```
+
+-----
+
+### Best Practices for `cache:policy`
+
+  * **Clear Ownership:** Assign the `pull-push` policy to the single, specific job responsible for running the full installation command (e.g., `npm install`, `pip install`). This job "owns" the creation of the cache archive.
+  * **Protect the Cache:** Use the `pull` policy for all other jobs (test, build, deploy) that only *read* the dependencies. This prevents an accidental failure or minor modification in a downstream job from overwriting a perfectly valid, successful cache archive.
+  * **Combine with `needs`:** When using the `needs` keyword, ensure your consuming jobs use `policy: pull` and rely on the preceding `pull-push` job for their dependencies.
+  * **Avoid `push` for Testing:** Never use `pull-push` or `push` on a testing job, as test execution may lead to minor changes in the `node_modules` structure, which could then overwrite the main cache with a slightly altered, less stable version.
+
+By strategically setting the cache policy, you ensure your pipeline minimizes network traffic and maximizes the reliability of your dependency cache.
+
+-----
 
 
