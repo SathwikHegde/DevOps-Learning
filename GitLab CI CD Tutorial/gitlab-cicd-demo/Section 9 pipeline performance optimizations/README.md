@@ -1173,4 +1173,124 @@ By strategically setting the cache policy, you ensure your pipeline minimizes ne
 
 -----
 
+### Dynamic Cache Policy: Controlling Cache Behavior with `rules` 🧠
+
+While the `cache:policy` keyword (`pull`, `pull-push`) controls *how* a job interacts with the cache, sometimes you need to control *whether* a job pushes or pulls the cache at all, based on the pipeline's context. **Dynamic Cache Policy** uses the `rules` keyword to conditionally set the entire `cache` block, providing granular control over when a cache is created or restored.
+
+This technique is primarily used to prevent unnecessary cache uploads or to ensure a specific job (like a scheduled scan) always uses a fresh environment.
+
+-----
+
+### The Goal: Preventing Unnecessary Cache Overwrites
+
+A common scenario is wanting to install dependencies and create a cache only when a developer explicitly pushes a commit to a branch or a Merge Request. We want to *prevent* the cache from being overwritten by pipelines that run automatically for informational purposes, such as:
+
+  * **Scheduled Pipelines:** Running a daily check should consume, but not update, the cache.
+  * **Tag Pipelines:** Creating a release tag should deploy the code but shouldn't alter the dependency cache.
+  * **Web UI Retries:** Retrying a deployment job should not generate a new cache.
+
+### Implementation: Using `rules` to Set the Policy
+
+You define a full `cache` block, including the `policy`, within a job's `rules` array. GitLab processes the rules in order, and the first matching rule defines the job's full configuration, including its cache settings.
+
+#### Example: Cache Creation Only on Direct Pushes
+
+This configuration ensures the cache is created only when code is pushed to a branch, not on any other trigger.
+
+```yaml
+# .gitlab-ci.yml
+
+stages:
+  - install
+  - test
+
+# Define the common cache key
+.cache_key_config: &cache_key
+  key:
+    files: [package-lock.json]
+    prefix: node-deps
+
+# Job that installs dependencies and manages the cache
+install_dependencies:
+  stage: install
+  image: node:20-alpine
+  script:
+    - npm install
+  
+  # The 'cache' block is defined dynamically based on pipeline source
+  cache:
+    # This block is empty, but will be overwritten by a matching rule below
+    # It acts as a fallback for the lowest precedence rule.
+
+  rules:
+    # RULE 1: If the pipeline is triggered by a push to a branch (developer activity)
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      # Define the cache configuration, including the PULL-PUSH policy
+      # This rule's configuration is used if it matches.
+      variables:
+        CACHE_POLICY: pull-push
+      cache:
+        <<: *cache_key
+        paths: [node_modules/]
+        policy: pull-push # <-- CREATE/UPDATE the cache
+
+    # RULE 2: If the pipeline is triggered by a schedule (e.g., daily check)
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      # Define the cache configuration with a PULL policy
+      variables:
+        CACHE_POLICY: pull
+      cache:
+        <<: *cache_key
+        paths: [node_modules/]
+        policy: pull # <-- ONLY CONSUME the cache, DO NOT overwrite
+
+    # RULE 3 (Fallback): Do not run installation or caching for tags/other non-branch sources
+    - when: never
+```
+
+### Advanced Technique: Using `variables` within `rules`
+
+For cleaner YAML, you can define the policy value in a variable within the `rules` block and then reference that variable in the main job definition.
+
+```yaml
+# .gitlab-ci.yml
+
+# ... (cache key definition)
+
+install_dependencies:
+  stage: install
+  image: node:20-alpine
+  script:
+    - npm install
+  
+  # 1. Define the cache block once, referencing the dynamic variable
+  cache:
+    <<: *cache_key
+    paths: [node_modules/]
+    policy: $CACHE_POLICY # This policy value is set in the 'rules' section below
+
+  rules:
+    # RULE 1: Push/Merge Request Pipeline (Developer Activity)
+    - if: '$CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"'
+      variables:
+        CACHE_POLICY: pull-push # Set the variable to 'pull-push'
+      when: on_success
+      
+    # RULE 2: Scheduled/Manual/Other Pipeline
+    - if: '$CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "web"'
+      variables:
+        CACHE_POLICY: pull # Set the variable to 'pull'
+      when: on_success
+      
+    # RULE 3: Default (Skip completely if the source is not recognized)
+    - when: never
+```
+
+### Summary of Benefits
+
+1.  **Protects Valid Cache:** Prevents automated, non-code-changing pipelines (like schedules) from accidentally overwriting a valid cache with an incomplete or empty one.
+2.  **Optimized I/O:** Explicitly disables the upload/download phases when they are not required, saving network time and storage resources.
+3.  **Clear Intent:** Clearly documents when and why the cache is allowed to be modified, making the pipeline's behavior predictable.
+
+By using dynamic cache policies, you ensure your CI/CD pipeline is not only fast but also robust and reliable under all possible execution scenarios.
 
