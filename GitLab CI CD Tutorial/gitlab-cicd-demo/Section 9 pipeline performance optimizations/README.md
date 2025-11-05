@@ -1294,3 +1294,57 @@ install_dependencies:
 
 By using dynamic cache policies, you ensure your CI/CD pipeline is not only fast but also robust and reliable under all possible execution scenarios.
 
+### Troubleshooting the Cache Configuration: When Caching Fails to Deliver 🐛
+
+Caching is one of the most powerful tools for optimizing pipeline performance, but it is also one of the most frequent sources of troubleshooting headaches. When a job runs slowly because the cache is missed (a "cache miss") or fails because a stale cache was restored, it indicates an issue with your configuration.
+
+This guide details the common problems encountered with GitLab CI/CD caching and provides structured solutions for debugging.
+
+---
+
+### The Goal of Troubleshooting
+
+The primary goal is to ensure the job is either:
+1.  **Fast (Cache Hit):** The cache is found, restored, and your dependencies are ready instantly.
+2.  **Reliable (Cache Miss):** The cache is missed, but your job correctly rebuilds the dependencies from scratch without failing.
+
+---
+
+### Common Cache Problems and Solutions
+
+| Problem | Symptom | Root Cause | Solution |
+| :---: | :--- | :--- | :--- |
+| **A. Cache Miss** | Job runs slowly; logs show `Restoring cache... Nothing to extract`. | **Inconsistent `key` definition.** The job creating the cache and the job consuming it use different `key` values, or the `key:files` content changed. | **Verify `key`:** Ensure the `key` block (including `files` and `prefix`) is *identical* in all relevant jobs. Use YAML anchors (`&` and `*`) or `extends` to enforce consistency. |
+| **B. Stale Cache** | Job fails after restoring cache; logs show `Package not found` or `Dependency mismatch`. | **Incorrect `key:files` definition.** The `key` is based on a file that *didn't* change (e.g., `package.json`), but a critical lock file *did* change. | **Verify `key:files`:** Always base the key on the **lock file** (`package-lock.json`, `Gemfile.lock`), not the primary definition file. |
+| **C. Cache Overwrite** | A small test job accidentally replaces a large, valid cache with an incomplete cache. | **Incorrect `cache:policy`.** Downstream jobs are using `policy: pull-push` when they should only be reading the cache. | **Set `policy: pull`:** Ensure all jobs that don't run the dependency install command use `policy: pull` to prevent accidental overwrites. |
+| **D. Missing Files** | Job restores the cache but still runs `npm install` because the folder is incomplete. | **Incorrect `cache:paths`.** The `paths` list does not fully cover the necessary dependency folder structure. | **Verify `paths`:** Use wildcards if necessary (`vendor/**`) and ensure the path is correctly set relative to the project root (e.g., `node_modules/` or `.venv/`). |
+| **E. Cache Conflict** | The cache is corrupted, or one project's cache interferes with another's. | **Global `key` without scoping.** Caches from different branches or projects use the same `key`. | **Add Scoping:** Always scope the cache key. Use `key: $CI_PROJECT_PATH` for project isolation or `$CI_COMMIT_REF_SLUG` for branch isolation (though `key:files` is superior). |
+
+---
+
+### Step-by-Step Debugging Procedure
+
+When a job has an unexpected cache issue, follow this sequence:
+
+1.  **Check the Logs for I/O:**
+    * **Look for `Downloading cache...`:** This confirms the cache was found and the key matched. If you see `Nothing to extract`, the key matched, but the cache archive was empty.
+    * **Look for `Creating cache...`:** This confirms the job attempted to save a new cache.
+
+2.  **Verify the Cache Key:**
+    * **Examine the job log of the *consuming* job.** The log should display the exact cache key it tried to retrieve (e.g., `node-deps-abc12345`).
+    * **Examine the job log of the *producing* job.** Compare its key with the consuming job's key. **They must be identical.** If they differ, your `key:files` or `key:prefix` definition is inconsistent.
+
+3.  **Force a Clean Run:**
+    * To eliminate the cache as the problem, temporarily disable caching for the problematic job by setting `cache: {}`. If the job succeeds with a fresh install, the issue is definitely cache-related.
+
+4.  **Manually Bust the Cache:**
+    * If you believe the cache is corrupted, force a rebuild by either:
+        a) **Changing the `key:prefix`** (e.g., from `node-deps-v1` to `node-deps-v2`).
+        b) **Deleting the cache file** under the project's **CI/CD > Caches** page in the GitLab UI .
+
+5.  **Test Cache Integrity:**
+    * Use `policy: push` on a dedicated job to force a new cache upload, then use `policy: pull` on a subsequent job to verify that the newly created cache is complete and functional.
+
+By systematically comparing the cache keys and ensuring your `policy` is correctly set, you can quickly diagnose and fix the source of cache-related slowdowns or failures in your pipeline.
+
+---
